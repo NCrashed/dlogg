@@ -42,6 +42,9 @@ synchronized class BufferedLogger : CLogger
     
     override void finalize() @trusted
     {
+        if(finalized) return;
+        scope(exit) finalized = true;
+        
         foreach(msg; buffer)
         {
             scope(failure) {}
@@ -53,6 +56,10 @@ synchronized class BufferedLogger : CLogger
         }
     }
     
-    shared ILogger delayLogger;
-    string[] buffer;
+    private
+    {
+        shared ILogger delayLogger;
+        string[] buffer;
+        bool finalized;
+    }
 }

@@ -165,7 +165,11 @@ synchronized class CLogger : ILogger
     */
     void finalize() @trusted
     {
+        if(finalized) return;
+        
         scope(failure) {}
+        scope(exit) finalized = true;
+        
         close();
     }
     
@@ -179,7 +183,8 @@ synchronized class CLogger : ILogger
         immutable(string) mName;
         __gshared std.stream.File[shared CLogger] mLogFiles;
         shared LoggingLevel mMinOutputLevel;
-
+        bool finalized = false;
+        
         void close()
         {
             mLogFiles[this].close();
