@@ -17,17 +17,17 @@
 *   License: Subject to the terms of the MIT license, as written in the included LICENSE file.
 *   Authors: NCrashed <ncrashed@gmail.com>
 */
-module dlogg.bufflog;
+module dlogg.buffered;
 
 import std.array;
 import std.stdio;
-import dlogg.stdlog;
+import dlogg.strict;
 
 /**
 *   Class-wrapper around strict logger. All strings are written down
 *   only after finalizing the wrapper.
 */
-synchronized class BufferedLogger : CLogger
+synchronized class BufferedLogger : StrictLogger
 {
     this(shared ILogger delayLogger)
     {

@@ -11,7 +11,7 @@
 *   License: Subject to the terms of the MIT license, as written in the included LICENSE file.
 *   Authors: NCrashed <ncrashed@gmail.com>
 */
-module dlogg.stdlog;
+module dlogg.strict;
 
 public import dlogg.log;
 import std.stream;
@@ -27,7 +27,7 @@ import std.traits;
 *
 *   Example:
 *   -----------
-*   shared ILogger logger = new CLogger("my_awesome_log.log");
+*   shared ILogger logger = new StrictLogger("my_awesome_log.log");
 *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
 *   logger.logInfo("Info message!");
 *   logger.logError("Error message!");
@@ -37,7 +37,7 @@ import std.traits;
 *   logger.reload;
 *   -----------
 */
-synchronized class CLogger : ILogger
+synchronized class StrictLogger : ILogger
 {
     nothrow
     {   
@@ -181,7 +181,7 @@ synchronized class CLogger : ILogger
     private
     {
         immutable(string) mName;
-        __gshared std.stream.File[shared CLogger] mLogFiles;
+        __gshared std.stream.File[shared StrictLogger] mLogFiles;
         shared LoggingLevel mMinOutputLevel;
         bool finalized = false;
         
@@ -232,7 +232,7 @@ unittest
     scope(success) writeln("Finished!");
     scope(failure) writeln("Failed!");
 
-    auto logger = new shared CLogger("TestLog");
+    auto logger = new shared StrictLogger("TestLog");
     logger.minOutputLevel = LoggingLevel.Muted;
     logger.log("Notice msg!", LoggingLevel.Notice);
     logger.log("Warning msg!", LoggingLevel.Warning);
