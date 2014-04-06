@@ -1,6 +1,6 @@
 PROJECTNAME = dlogg
 REFERENCETOP = index.html
-REPOSRCTREE = https://github.com/NCrashed/dlogg/tree/master
+REPOSRCTREE = https://github.com/NCrashed/dlogg/tree/master/source
 TITLEBARTEXT = <a href="https://github.com/NCrashed/dlogg/tree/master">Github Page</a>
 RESOURCEROOT = bootDoc/
 ISSUETRACKER = https://github.com/NCrashed/dlogg/issues
