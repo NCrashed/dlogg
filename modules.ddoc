@@ -1,0 +1,4 @@
+MODULES = 
+	$(MODULE dlogg.log)
+	$(MODULE dlogg.strict)
+	$(MODULE dlogg.buffered)

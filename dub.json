@@ -1,9 +1,0 @@
-{
-	"name": "dlogg",
-	"description": "Logging utilities that aimed to be used in highly loaded applications",
-	"copyright": "Copyright © 2014, Anton Gushcha",
-	"authors": ["NCrashed <ncrashed@gmail.com>"],
-	"license": "MIT",
-	"dependencies": {
-	}
-}

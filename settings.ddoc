@@ -1,0 +1,14 @@
+PROJECTNAME = dlogg
+REFERENCETOP = index.html
+REPOSRCTREE = https://github.com/NCrashed/dlogg/tree/master
+TITLEBARTEXT = <a href="https://github.com/NCrashed/dlogg/tree/master">Github Page</a>
+RESOURCEROOT = bootDoc/
+ISSUETRACKER = https://github.com/NCrashed/dlogg/issues
+DEFAULTPACKAGE = index
+PACKAGESEP = .
+FAVICON = 
+LOGOSRC = 
+LOGOALT = $(PROJECTNAME)
+LOGOLINK = $(REFERENCETOP)
+COPYRIGHT = Anton Gushcha
+COPYRIGHTFOOTER = &copy; $(COPYRIGHT) 2014-$(YEAR)
