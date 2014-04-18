@@ -39,6 +39,15 @@ import std.traits;
 */
 synchronized class StrictLogger : ILogger
 {
+    /// Option how to open logging file
+    enum Mode
+    {
+        /// Don't override, append to end
+        Append,
+        /// Override, start new file
+        Rewrite
+    }
+    
     nothrow
     {   
         /**
@@ -111,16 +120,16 @@ synchronized class StrictLogger : ILogger
     *
     *   Note: Can throw if there is a problem with access permissions.
     */ 
-    this(string name) @trusted
+    this(string name, Mode mode = Mode.Rewrite) @trusted
     {
         mName = name;
-        initialize();
+        initialize(mode);
     }
     
     /**
     *   Tries to create log file at $(B location).
     */
-    protected void initialize() @trusted
+    protected void initialize(Mode mode = Mode.Rewrite) @trusted
     {
         auto dir = name.dirName;
         try
@@ -129,13 +138,23 @@ synchronized class StrictLogger : ILogger
             {
                 dir.mkdirRecurse;
             }
-            mLogFiles[this] = new std.stream.File(name, FileMode.OutNew);
+            mLogFiles[this] = new std.stream.File(name, mapMode(mode));
         } 
         catch(OpenException e)
         {
             throw new Exception(text("Failed to create log at '", name, "'. Details: ", e.msg));
         }
     }
+    
+    /// Transforms custom mode to file open mode
+    private static FileMode mapMode(Mode mode)
+    {
+        final switch(mode)
+        {
+            case(Mode.Append): return FileMode.Append;
+            case(Mode.Rewrite): return FileMode.OutNew;
+        }
+    } 
     
     protected this()
     {

@@ -1,0 +1,8 @@
+[submodule "dlogg"]
+	path = dlogg
+	url = https://github.com/NCrashed/dlogg.git
+	branch = gh-pages
+[submodule "gh-pages"]
+	path = gh-pages
+	url = https://github.com/NCrashed/dlogg.git
+	branch = gh-pages
