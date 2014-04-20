@@ -48,16 +48,31 @@ synchronized class StrictLogger : ILogger
         Rewrite
     }
     
-    nothrow
-    {   
-        /**
-        *   Log file name.
-        */
-        string name() const @property @safe
-        {
-            return mName;
-        }
+  
+    /**
+    *   Log file name.
+    */
+    string name() const nothrow @property @safe
+    {
+        return mName;
+    }
 
+    /**
+    *   Setting new log file name. If the $(B value)
+    *   differs from old one, logger should close
+    *   old one and open new file.
+    */
+    void name(string value) @property @trusted
+    {
+        if(mName == value) return;
+        
+        close();
+        mName = value;
+        initialize(mSavedMode);
+    }
+    
+    nothrow
+    { 
         /**
         *   Prints message into log. Displaying in the console
         *   controlled by minOutputLevel property.
@@ -200,7 +215,7 @@ synchronized class StrictLogger : ILogger
 
     private
     {
-        immutable(string) mName;
+        string mName;
         __gshared std.stream.File[shared StrictLogger] mLogFiles;
         shared LoggingLevel mMinOutputLevel;
         bool finalized = false;

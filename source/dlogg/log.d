@@ -52,13 +52,20 @@ enum LoggingLevel
 */
 shared interface ILogger
 {
+    /**
+    *   Setting new log file name. If the $(B value)
+    *   differs from old one, logger should close
+    *   old one and open new file.
+    */
+    void name(string value) @property;
+    
     nothrow 
     {
         /**
         *   Log file name.
         */
         string name() @property const;
-
+        
         /**
         *   Prints message into log. Displaying in the console
         *   controlled by minOutputLevel property.
