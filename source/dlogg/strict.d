@@ -110,7 +110,7 @@ synchronized class StrictLogger : ILogger
     {
         if(!name.exists)
         {
-            initialize();
+            initialize(mSavedMode);
         }
     }
     
@@ -123,6 +123,7 @@ synchronized class StrictLogger : ILogger
     this(string name, Mode mode = Mode.Rewrite) @trusted
     {
         mName = name;
+        mSavedMode = mode;
         initialize(mode);
     }
     
@@ -203,6 +204,7 @@ synchronized class StrictLogger : ILogger
         __gshared std.stream.File[shared StrictLogger] mLogFiles;
         shared LoggingLevel mMinOutputLevel;
         bool finalized = false;
+        Mode mSavedMode;
         
         void close()
         {
