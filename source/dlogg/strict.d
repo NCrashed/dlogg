@@ -212,7 +212,8 @@ synchronized class StrictLogger : ILogger
     */
     void rawInput(string message)  @trusted
     {
-        mLogFiles[this].writeLine(message);
+        if(this in mLogFiles)
+            mLogFiles[this].writeLine(message);
     }
     
     /**
@@ -244,7 +245,11 @@ synchronized class StrictLogger : ILogger
         
         void close()
         {
-            mLogFiles[this].close();
+            if(this in mLogFiles)
+            {
+                mLogFiles[this].close();
+                mLogFiles.remove(this);
+            }
         }
     }
 }
@@ -295,7 +300,7 @@ unittest
     logger.log("Warning msg!", LoggingLevel.Warning);
     logger.log("Debug msg!", LoggingLevel.Debug);
     logger.log("Fatal msg!", LoggingLevel.Fatal);
-    logger.close();
+    logger.finalize();
 
     auto f = new std.stdio.File(logger.name, "r");
     // Delete date string before cheking string
@@ -303,8 +308,12 @@ unittest
     assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Warning]~"Warning msg!", "Log warning testing fail!");
     assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Debug]~"Debug msg!", "Log debug testing fail!");
     assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Fatal]~"Fatal msg!", "Log fatal testing fail!");
-    f.close();
+    f.close;
 
+    logger = new shared StrictLogger("TestLog");
+    scope(exit) logger.close();
+    logger.minOutputLevel = LoggingLevel.Muted;
+    
     immutable n = 10;
     foreach(i; 1 .. n)
     {
