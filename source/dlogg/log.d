@@ -78,9 +78,19 @@ shared interface ILogger
         LoggingLevel minOutputLevel() const @property;
 
         /**
-        *   Setups minimum log level, 
+        *   Setups minimum message level that goes to console.
         */
         void minOutputLevel(LoggingLevel level) @property;
+        
+        /**
+        *   Setups minimum message level that goes to file.
+        */
+        LoggingLevel minLoggingLevel() @property;
+        
+        /**
+        *   Setups minimum message level that goes to file.
+        */
+        void minLoggingLevel(LoggingLevel level) @property;
         
         /**
         *   Used to manual shutdown protocols.

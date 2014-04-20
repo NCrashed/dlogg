@@ -84,14 +84,17 @@ synchronized class StrictLogger : ILogger
             if(level >= mMinOutputLevel)
                 writeln(logsStyles[level]~message);
 
-            try
+            if(level >= mMinLoggingLevel)
             {
-                rawInput(formatString(message, level));
-            }
-            catch(Exception e)
-            {
-                if(minOutputLevel != LoggingLevel.Muted)
-                    writeln(logsStyles[LoggingLevel.Warning], "Failed to write into log ", name);
+                try
+                {
+                    rawInput(formatString(message, level));
+                }
+                catch(Exception e)
+                {
+                    if(minOutputLevel != LoggingLevel.Muted)
+                        writeln(logsStyles[LoggingLevel.Warning], "Failed to write into log ", name);
+                }
             }
         }
         
@@ -109,6 +112,22 @@ synchronized class StrictLogger : ILogger
         void minOutputLevel(LoggingLevel level) @property @trusted
         {
             mMinOutputLevel = level;
+        }
+        
+        /**
+        *   Setups minimum message level that goes to file.
+        */
+        LoggingLevel minLoggingLevel() @property
+        {
+            return mMinLoggingLevel;
+        }
+        
+        /**
+        *   Setups minimum message level that goes to file.
+        */
+        void minLoggingLevel(LoggingLevel level) @property
+        {
+            mMinLoggingLevel = level;
         }
     }
 
@@ -176,6 +195,7 @@ synchronized class StrictLogger : ILogger
     {
         mName = "";
         mMinOutputLevel = LoggingLevel.Notice;
+        mMinLoggingLevel = LoggingLevel.Notice;
     }
     
     /**
@@ -217,7 +237,8 @@ synchronized class StrictLogger : ILogger
     {
         string mName;
         __gshared std.stream.File[shared StrictLogger] mLogFiles;
-        shared LoggingLevel mMinOutputLevel;
+        LoggingLevel mMinOutputLevel;
+        LoggingLevel mMinLoggingLevel;
         bool finalized = false;
         Mode mSavedMode;
         
