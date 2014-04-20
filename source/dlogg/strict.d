@@ -173,7 +173,7 @@ synchronized class StrictLogger : ILogger
             {
                 dir.mkdirRecurse;
             }
-            mLogFile = cast(shared)(new std.stream.File(name, mapMode(mode)));
+            mLogFiles[this] = new std.stream.File(name, mapMode(mode));
         } 
         catch(OpenException e)
         {
@@ -212,7 +212,7 @@ synchronized class StrictLogger : ILogger
     */
     void rawInput(string message)  @trusted
     {
-        logFile.writeLine(message);
+        mLogFiles[this].writeLine(message);
     }
     
     /**
@@ -235,15 +235,8 @@ synchronized class StrictLogger : ILogger
 
     private
     {
-        shared std.stream.File mLogFile;
-        
-        // cast away shared
-        std.stream.File logFile()
-        {
-            return cast(std.stream.File)mLogFile;
-        }
-        
         string mName;
+        __gshared std.stream.File[shared StrictLogger] mLogFiles;
         LoggingLevel mMinOutputLevel;
         LoggingLevel mMinLoggingLevel;
         bool finalized = false;
@@ -251,7 +244,7 @@ synchronized class StrictLogger : ILogger
         
         void close()
         {
-            logFile.close();
+            mLogFiles[this].close();
         }
     }
 }
