@@ -292,7 +292,7 @@ unittest
     import std.file;
     import std.stdio;
 
-    write("Testing log system... ");
+    write("Testing strict logger... ");
     scope(success) writeln("Finished!");
     scope(failure) writeln("Failed!");
 
