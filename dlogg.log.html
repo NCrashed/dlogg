@@ -158,7 +158,14 @@
 <div class="declaration-content"><dl><p>Interface for lazy logging. Assumes to be nothrow.
    Underlying realization should be concurrent safe.</p>
 </dl>
-<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>abstract shared const nothrow @property @safe string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>abstract shared @property @safe void <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>(string <i>value</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Setting new log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>. If the <b><i>value</i></b>
+   differs from old one, logger should close
+   old one and open new file.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>abstract shared const nothrow @property @safe string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>.</p>
 </dl>

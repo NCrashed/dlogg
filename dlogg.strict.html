@@ -165,6 +165,13 @@ logger.logDebug(<span class="d_string">"Debug message!"</span>);
 <div class="declaration-content"><dl><p>Log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>.</p>
 </dl>
 </div>
+<hr><div class="row-fluid declaration"><h3>shared @property @trusted void <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>(string <i>value</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Setting new log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>. If the <b><i>value</i></b>
+   differs from old one, logger should close
+   old one and open new file.</p>
+</dl>
+</div>
 <hr><div class="row-fluid declaration"><h3>shared nothrow @trusted void <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>(lazy string <i>message</i>, LoggingLevel <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Prints <i>message</i> into <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>. Displaying in the console
