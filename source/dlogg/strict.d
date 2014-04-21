@@ -257,7 +257,7 @@ synchronized class StrictLogger : ILogger
 /// Display styles
 private immutable(string[LoggingLevel]) logsStyles;
 
-static this() 
+shared static this() 
 {
     logsStyles = [
         LoggingLevel.Notice  :   "Notice: ",
