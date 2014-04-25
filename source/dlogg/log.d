@@ -53,18 +53,19 @@ enum LoggingLevel
 alias ILogger = IStyledLogger!(LoggingLevel);
 
 // wrappers for easy logging
-nothrow shared @trusted
+nothrow @trusted
 {
     /**
     *   Wrapper for handy debug messages.
     *   Warning: main purpose for debug messages, thus it is not lazy.
     */
-    void logDebug(E...)(shared ILogger logger, E args) shared
+    void logDebug(E...)(shared ILogger logger, E args)
     {
-        scope(failure) {}
         debug
         {
-            logger.log(text(args), LoggingLevel.Debug);
+            scope(failure) {}
+            string msg = text(args);
+            logger.log(msg, LoggingLevel.Debug);
         }
     }
     
