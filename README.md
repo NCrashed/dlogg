@@ -84,3 +84,39 @@ In many cases (for instance, unittesting) we don't want log output just in time.
 Log rotating
 ============
 `StrictLogger.reload` function checks if the log file is exists at specified location and if can't find it, recreates the file and continues write into it. Useful for [logrotate](http://linuxcommand.org/man_pages/logrotate8.html) utility. GNU/Linux system checks file identity by inode, that doesn't change while renaming. Thus after renaming the file at location log continues write into the renamed file. The call to the reload method force splitting log into two parts.
+
+Custom styles
+=============
+Since `v0.2.0` custom styled logs are available. Consider how standart logger is implemented:
+```D
+alias StrictLogger = StyledStrictLogger!(LoggingLevel
+                , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
+                , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
+                , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
+                , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
+                , LoggingLevel.Muted,   "",              ""
+                );
+```
+
+`StyledStrictLogger(StyleEnum, US...)` is template class that implements `IStyledLogger!StyleEnum` interface. First template parameter is used to define your logging level enum (also `StyleEnum` values ordering is important for muting features).
+
+Last template parameters have format of list of triples (`StyleEnum` value, `string`, `string`). Style value
+defines for which logging level following format strings are. First format string is used
+for console output, the second one is for file output.
+
+Format strings could use two arguments: `'%1$s'` is message that is passed to a logger and
+`'%2$s'` is current time string. Formatting is handled by [std.format](http://dlang.org/phobos/std_format.html) module. 
+
+Now example of custom logger:
+```D
+enum MyLevel
+{
+    Error,
+    Debug
+}
+
+mixin generateStyle!(MyLevel
+            , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
+            , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s"
+            );
+```
