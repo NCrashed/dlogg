@@ -14,6 +14,8 @@
 module dlogg.strict;
 
 public import dlogg.log;
+import dlogg.style;
+
 import std.stream;
 import std.path;
 import std.stdio;
@@ -23,7 +25,7 @@ import std.datetime;
 import std.traits;
 
 /**
-*   Standard implementation of ILogger interface.
+*   Standard implementation of IStyledLogger interface.
 *
 *   Example:
 *   -----------
@@ -37,8 +39,38 @@ import std.traits;
 *   logger.reload;
 *   -----------
 */
-synchronized class StrictLogger : ILogger
+alias StrictLogger = StyledStrictLogger!(LoggingLevel
+                , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
+                , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
+                , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
+                , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
+                , LoggingLevel.Muted,   "",              ""
+                );
+
+/**
+*   Implementation of $(B IStyledLogger) with custom style. Usually you want to use
+*   $(B StrictLogger) alias, but there are cases where you want custom styles.
+*
+*   Example of custom styled logger:
+*   --------------------------------
+*   enum MyLevel
+*   {
+*       Error,
+*       Debug
+*   }
+*   
+*   alias MyLogger = StyledStrictLogger!(MyLevel
+*               , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
+*               , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s");
+*   --------------------------------
+*
+*   See_Also: dlogg.style
+*/
+synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnum
 {
+    mixin generateStyle!(StyleEnum, US);
+    alias thistype = StyledStrictLogger!(StyleEnum, US);
+    
     /// Option how to open logging file
     enum Mode
     {
@@ -48,7 +80,6 @@ synchronized class StrictLogger : ILogger
         Rewrite
     }
     
-  
     /**
     *   Log file name.
     */
@@ -77,23 +108,26 @@ synchronized class StrictLogger : ILogger
         *   Prints message into log. Displaying in the console
         *   controlled by minOutputLevel property.
         */
-        void log(lazy string message, LoggingLevel level) @trusted
+        void log(lazy string message, StyleEnum level) @trusted
         {
             scope(failure) {}
 
             if(level >= mMinOutputLevel)
-                writeln(logsStyles[level]~message);
-
+            {
+                string msg = formatConsoleOutput(message, level);
+                writeln(msg);
+            }
+            
             if(level >= mMinLoggingLevel)
             {
                 try
                 {
-                    rawInput(formatString(message, level));
+                    rawInput(formatFileOutput(message, level));
                 }
                 catch(Exception e)
                 {
                     if(minOutputLevel != LoggingLevel.Muted)
-                        writeln(logsStyles[LoggingLevel.Warning], "Failed to write into log ", name);
+                        writeln("Failed to write into log ", name);
                 }
             }
         }
@@ -101,7 +135,7 @@ synchronized class StrictLogger : ILogger
         /**
         *   Returns: minimum log level,  will be printed in the console.
         */
-        LoggingLevel minOutputLevel() const @property @trusted
+        StyleEnum minOutputLevel() const @property @trusted
         {
             return mMinOutputLevel;
         }
@@ -109,7 +143,7 @@ synchronized class StrictLogger : ILogger
         /**
         *   Setups minimum log level, 
         */
-        void minOutputLevel(LoggingLevel level) @property @trusted
+        void minOutputLevel(StyleEnum level) @property @trusted
         {
             mMinOutputLevel = level;
         }
@@ -117,7 +151,7 @@ synchronized class StrictLogger : ILogger
         /**
         *   Setups minimum message level that goes to file.
         */
-        LoggingLevel minLoggingLevel() @property
+        StyleEnum minLoggingLevel() @property
         {
             return mMinLoggingLevel;
         }
@@ -125,7 +159,7 @@ synchronized class StrictLogger : ILogger
         /**
         *   Setups minimum message level that goes to file.
         */
-        void minLoggingLevel(LoggingLevel level) @property
+        void minLoggingLevel(StyleEnum level) @property
         {
             mMinLoggingLevel = level;
         }
@@ -194,17 +228,8 @@ synchronized class StrictLogger : ILogger
     protected this()
     {
         mName = "";
-        mMinOutputLevel = LoggingLevel.Notice;
-        mMinLoggingLevel = LoggingLevel.Notice;
-    }
-    
-    /**
-    *   Format message with default logging style (etc. time and level string).
-    */
-    string formatString(lazy string message, LoggingLevel level) @trusted
-    {
-        auto timeString = Clock.currTime.toISOExtString();
-        return text("[", timeString, "]:", logsStyles[level], message);
+        mMinOutputLevel = StyleEnum.min;
+        mMinLoggingLevel = StyleEnum.min;
     }
     
     /**
@@ -237,9 +262,9 @@ synchronized class StrictLogger : ILogger
     private
     {
         string mName;
-        __gshared std.stream.File[shared StrictLogger] mLogFiles;
-        LoggingLevel mMinOutputLevel;
-        LoggingLevel mMinLoggingLevel;
+        __gshared std.stream.File[shared thistype] mLogFiles;
+        StyleEnum mMinOutputLevel;
+        StyleEnum mMinLoggingLevel;
         bool finalized = false;
         Mode mSavedMode;
         
@@ -252,20 +277,6 @@ synchronized class StrictLogger : ILogger
             }
         }
     }
-}
-
-/// Display styles
-private immutable(string[LoggingLevel]) logsStyles;
-
-shared static this() 
-{
-    logsStyles = [
-        LoggingLevel.Notice  :   "Notice: ",
-        LoggingLevel.Warning :   "Warning: ",
-        LoggingLevel.Debug   :   "Debug: ",
-        LoggingLevel.Fatal   :   "Error: ",
-        LoggingLevel.Muted   :   "",
-    ];
 }
 
 version(unittest)
@@ -303,11 +314,10 @@ unittest
     logger.finalize();
 
     auto f = new std.stdio.File(logger.name, "r");
-    // Delete date string before cheking string
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Notice]~"Notice msg!", "Log notice testing fail!");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Warning]~"Warning msg!", "Log warning testing fail!");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Debug]~"Debug msg!", "Log debug testing fail!");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logsStyles[LoggingLevel.Fatal]~"Fatal msg!", "Log fatal testing fail!");
+    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Notice msg!",  LoggingLevel.Notice),  "Log notice testing fail!");
+    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Warning msg!", LoggingLevel.Warning), "Log warning testing fail!");
+    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Debug msg!",   LoggingLevel.Debug),   "Log debug testing fail!");
+    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Fatal msg!",   LoggingLevel.Fatal),   "Log fatal testing fail!");
     f.close;
 
     logger = new shared StrictLogger("TestLog");
@@ -327,6 +337,14 @@ unittest
         ni += 1;
     }
     assert(ni == n, "Concurrent logging test is failed!");
+    
+    // Testing overloading
+    logger.logInfo("some string");
+    logger.logInfo("first string", "second string");
+    logger.logWarning("some string");
+    logger.logWarning("first string", "second string");
+    logger.logError("some string");
+    logger.logError("first string", "second string");
     
     remove(logger.name);
 }

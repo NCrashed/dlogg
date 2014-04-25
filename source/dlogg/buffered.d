@@ -24,10 +24,22 @@ import std.stdio;
 import dlogg.strict;
 
 /**
-*   Class-wrapper around strict logger. All strings are written down
-*   only after finalizing the wrapper.
+*   Alias for $(B StyledBufferedLogger) for default logging style.
 */
-synchronized class BufferedLogger : StrictLogger
+alias BufferedLogger = StyledBufferedLogger!(LoggingLevel
+                , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
+                , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
+                , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
+                , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
+                , LoggingLevel.Muted,   "",              ""
+                );
+
+/**
+*   Class-wrapper around strict logger. All strings are written down
+*   only after finalizing the wrapper. Usually you want to use alias
+*   for standart style $(B BufferedLogger).
+*/
+synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(StyleEnum, US)
 {
     this(shared ILogger delayLogger)
     {

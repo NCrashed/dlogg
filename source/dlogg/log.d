@@ -47,10 +47,75 @@ enum LoggingLevel
 }
 
 /**
+*   Default logger interface that uses $(B LoggingLevel) as
+*   enum that describes ordering of logging levels.
+*/
+alias ILogger = IStyledLogger!(LoggingLevel);
+
+// wrappers for easy logging
+nothrow shared @trusted
+{
+    /**
+    *   Wrapper for handy debug messages.
+    *   Warning: main purpose for debug messages, thus it is not lazy.
+    */
+    void logDebug(E...)(shared ILogger logger, E args) shared
+    {
+        scope(failure) {}
+        debug
+        {
+            logger.log(text(args), LoggingLevel.Debug);
+        }
+    }
+    
+    /// Not lazy wrapper for multiple args messages
+    void logInfo(E...)(shared ILogger logger, E args)
+    {
+        scope(failure) {}
+        logger.log(text(args), LoggingLevel.Notice);
+    }
+
+    /// Lazy wrapper for one string message
+    void logInfo()(shared ILogger logger, lazy string message)
+    {
+        logger.log(message, LoggingLevel.Notice);
+    }
+    
+    /// Not lazy wrapper for multiple args messages
+    void logWarning(E...)(shared ILogger logger, E args)
+    {
+        scope(failure) {}
+        logger.log(text(args), LoggingLevel.Warning);
+    }
+    
+    /// Lazy wrapper for one string message
+    void logWarning()(shared ILogger logger, lazy string message)
+    {
+        logger.log(message, LoggingLevel.Warning);
+    }
+    
+    /// Not lazy wrapper for multiple args messages
+    void logError(E...)(shared ILogger logger, E args)
+    {
+        scope(failure) {}
+        logger.log(text(args), LoggingLevel.Fatal);
+    }
+    
+    /// Lazy wrapper for one string message
+    void logError()(shared ILogger logger, lazy string message)
+    {
+        logger.log(message, LoggingLevel.Fatal);
+    }
+}
+    
+/**
 *   Interface for lazy logging. Assumes to be nothrow.
 *   Underlying realization should be concurrent safe.
+*
+*   $(B StyleEnum) is enum that used to distinct logging
+*   levels and define ordering for verbosity muting.
 */
-shared interface ILogger
+shared interface IStyledLogger(StyleEnum)
 {
     /**
     *   Setting new log file name. If the $(B value)
@@ -70,7 +135,7 @@ shared interface ILogger
         *   Prints message into log. Displaying in the console
         *   controlled by minOutputLevel property.
         */
-        void log(lazy string message, LoggingLevel level);
+        void log(lazy string message, StyleEnum level);
 
         /**
         *   Returns: minimum log level,  will be printed in the console.
@@ -80,7 +145,7 @@ shared interface ILogger
         /**
         *   Setups minimum message level that goes to console.
         */
-        void minOutputLevel(LoggingLevel level) @property;
+        void minOutputLevel(StyleEnum level) @property;
         
         /**
         *   Setups minimum message level that goes to file.
@@ -90,7 +155,7 @@ shared interface ILogger
         /**
         *   Setups minimum message level that goes to file.
         */
-        void minLoggingLevel(LoggingLevel level) @property;
+        void minLoggingLevel(StyleEnum level) @property;
         
         /**
         *   Used to manual shutdown protocols.
@@ -106,7 +171,12 @@ shared interface ILogger
     /**
     *   Format message with default logging style (etc. time and level string).
     */
-    string formatString(lazy string message, LoggingLevel level);
+    string formatConsoleOutput(string message, StyleEnum level);
+    
+    /**
+    *   Format message with default logging style (etc. time and level string).
+    */
+    string formatFileOutput(string message, StyleEnum level);
     
     /**
     *   Checks if the log file is exists at specified $(B location) and
@@ -120,37 +190,4 @@ shared interface ILogger
     *   Note: The method is not nothrow!
     */
     void reload();
-
-    // wrappers for easy logging
-    final nothrow @trusted
-    {
-        /**
-        *   Wrapper for handy debug messages.
-        *   Warning: main purpose for debug messages, thus it is not lazy.
-        */
-        void logDebug(E...)(E args) shared @trusted
-        {
-            scope(failure) {}
-            debug
-            {
-                string str = text(args);
-                log(str, LoggingLevel.Debug);
-            }
-        }
-        
-        void logInfo(lazy string message)
-        {
-            log(message, LoggingLevel.Notice);
-        }
-
-        void logWarning(lazy string message)
-        {
-            log(message, LoggingLevel.Warning);
-        }
-
-        void logError(lazy string message)
-        {
-            log(message, LoggingLevel.Fatal);
-        }
-    }
 }
