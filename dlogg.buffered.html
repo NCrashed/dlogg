@@ -61,6 +61,7 @@
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -98,6 +99,7 @@
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">dlogg.buffered</li>
 				</ul>
@@ -136,10 +138,16 @@
 </dd>
 <dt>Authors</dt><dd>NCrashed <ncrashed@gmail.com></dd>
 </dl>
-<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="BufferedLogger">&nbsp;</span><a class="symbol-link" href="#BufferedLogger">BufferedLogger</a>: dlogg.strict.StrictLogger;
+<hr><div class="row-fluid declaration"><h3>alias <span class="symbol-target" id="BufferedLogger">&nbsp;</span><a class="symbol-link" href="#BufferedLogger">BufferedLogger</a> = StyledBufferedLogger!(LoggingLevel, cast(LoggingLevel)2, "Debug: %1$s", "[%2$s]: Debug: %1$s", cast(LoggingLevel)0, "Notice: %1$s", "[%2$s]: Notice: %1$s", cast(LoggingLevel)1, "Warning: %1$s", "[%2$s]: Warning: %1$s", cast(LoggingLevel)3, "Fatal: %1$s", "[%2$s]: Fatal: %1$s", cast(LoggingLevel)4, "", "").StyledBufferedLogger;
+</h3></div>
+<div class="declaration-content"><dl><p>Alias for <b>StyledBufferedLogger</b> for default logging style.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="StyledBufferedLogger">&nbsp;</span><a class="symbol-link" href="#StyledBufferedLogger">StyledBufferedLogger</a>(StyleEnum, US...): StyledStrictLogger!(StyleEnum, US);
 </h3></div>
 <div class="declaration-content"><dl><p>Class-wrapper around strict logger. All strings are written down
-   only after finalizing the wrapper.</p>
+   only after finalizing the wrapper. Usually you want to use alias
+   for standart style <b>BufferedLogger</b>.</p>
 </dl>
 </div>
 

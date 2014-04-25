@@ -61,6 +61,7 @@
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -98,6 +99,7 @@
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">dlogg.strict</li>
 				</ul>
@@ -130,9 +132,9 @@
 </dd>
 <dt>Authors</dt><dd>NCrashed <ncrashed@gmail.com></dd>
 </dl>
-<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="StrictLogger">&nbsp;</span><a class="symbol-link" href="#StrictLogger">StrictLogger</a>: dlogg.log.ILogger;
+<hr><div class="row-fluid declaration"><h3>alias <span class="symbol-target" id="StrictLogger">&nbsp;</span><a class="symbol-link" href="#StrictLogger">StrictLogger</a> = StyledStrictLogger!(LoggingLevel, cast(LoggingLevel)2, "Debug: %1$s", "[%2$s]: Debug: %1$s", cast(LoggingLevel)0, "Notice: %1$s", "[%2$s]: Notice: %1$s", cast(LoggingLevel)1, "Warning: %1$s", "[%2$s]: Warning: %1$s", cast(LoggingLevel)3, "Fatal: %1$s", "[%2$s]: Fatal: %1$s", cast(LoggingLevel)4, "", "").StyledStrictLogger;
 </h3></div>
-<div class="declaration-content"><dl><p>Standard implementation of ILogger interface.
+<div class="declaration-content"><dl><p>Standard implementation of IStyledLogger interface.
 </p>
 <dt>Example:</dt><dd>
 <pre class="d_code"><span class="d_keyword">shared</span> ILogger logger = <span class="d_keyword">new</span> <u>StrictLogger</u>(<span class="d_string">"my_awesome_log.log"</span>);
@@ -146,7 +148,28 @@ logger.logDebug(<span class="d_string">"Debug message!"</span>);
 </pre>
 </dd>
 </dl>
-<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>enum <span class="symbol-target" id="Mode">&nbsp;</span><a class="symbol-link" href="#Mode">Mode</a>: int;
+</div>
+<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="StyledStrictLogger">&nbsp;</span><a class="symbol-link" href="#StyledStrictLogger">StyledStrictLogger</a>(StyleEnum, US...): IStyledLogger!StyleEnum;
+</h3></div>
+<div class="declaration-content"><dl><p>Implementation of <b>IStyledLogger</b> with custom style. Usually you want to use
+   <b>StrictLogger</b> alias, but there are cases where you want custom styles.
+</p>
+<p>  Example of custom styled logger:
+<pre class="d_code"><span class="d_keyword">enum</span> MyLevel
+{
+    Error,
+    Debug
+}
+
+<span class="d_keyword">alias</span> MyLogger = <u>StyledStrictLogger</u>!(MyLevel
+            , MyLevel.Debug,   <span class="d_string">"Debug: %1$s"</span>,   <span class="d_string">"[%2$s] Debug: %1$s"</span>
+            , MyLevel.Error,   <span class="d_string">"Fatal: %1$s"</span>,   <span class="d_string">"[%2$s] Fatal: %1$s"</span>);
+</pre>
+
+</p>
+<dt>See Also</dt><dd>dlogg.style</dd>
+</dl>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>enum <span class="symbol-target" id="Mode">&nbsp;</span><a class="symbol-link" href="#Mode">Mode</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Option how to open logging file</p>
 </dl>
@@ -160,45 +183,45 @@ logger.logDebug(<span class="d_string">"Debug message!"</span>);
 </div>
 </div>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared const nothrow @property @safe string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
+<hr><div class="row-fluid declaration"><h3>const nothrow @property @safe string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared @property @trusted void <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>(string <i>value</i>);
+<hr><div class="row-fluid declaration"><h3>@property @trusted void <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>(string <i>value</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Setting new log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>. If the <b><i>value</i></b>
    differs from old one, logger should close
    old one and open new file.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared nothrow @trusted void <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>(lazy string <i>message</i>, LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>@trusted void <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>(lazy string <i>message</i>, StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Prints <i>message</i> into <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>. Displaying in the console
    controlled by minOutputLevel property.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared const nothrow @property @trusted LoggingLevel <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>();
+<hr><div class="row-fluid declaration"><h3>const @property @trusted StyleEnum <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>();
 </h3></div>
 <div class="declaration-content"><dl><dt>Returns</dt><dd>minimum log level,  will be printed in the console.</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared nothrow @property @trusted void <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>(LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>@property @trusted void <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>(StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Setups minimum log <i>level</i>,</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared nothrow @property @safe LoggingLevel <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>();
+<hr><div class="row-fluid declaration"><h3>@property StyleEnum <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Setups minimum message level that goes to file.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared nothrow @property @safe void <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>(LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>@property void <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>(StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Setups minimum message <i>level</i> that goes to file.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared @safe void <span class="symbol-target" id="reload">&nbsp;</span><a class="symbol-link" href="#reload">reload</a>();
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="reload">&nbsp;</span><a class="symbol-link" href="#reload">reload</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Checks if the log file is exists at specified <b>location</b> and
    if can't find it, recreates the file and continues write into it.
@@ -218,22 +241,17 @@ logger.logDebug(<span class="d_string">"Debug message!"</span>);
 Can throw if there is a problem with access permissions.</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>protected shared @trusted void <span class="symbol-target" id="initialize">&nbsp;</span><a class="symbol-link" href="#initialize">initialize</a>(Mode <i>mode</i> = Mode.Rewrite);
+<hr><div class="row-fluid declaration"><h3>@trusted void <span class="symbol-target" id="initialize">&nbsp;</span><a class="symbol-link" href="#initialize">initialize</a>(Mode <i>mode</i> = Mode.Rewrite);
 </h3></div>
 <div class="declaration-content"><dl><p>Tries to create log file at <b>location</b>.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared @trusted string <span class="symbol-target" id="formatString">&nbsp;</span><a class="symbol-link" href="#formatString">formatString</a>(lazy string <i>message</i>, LoggingLevel <i>level</i>);
-</h3></div>
-<div class="declaration-content"><dl><p>Format <i>message</i> with default logging style (etc. time and <i>level</i> string).</p>
-</dl>
-</div>
-<hr><div class="row-fluid declaration"><h3>shared @trusted void <span class="symbol-target" id="rawInput">&nbsp;</span><a class="symbol-link" href="#rawInput">rawInput</a>(string <i>message</i>);
+<hr><div class="row-fluid declaration"><h3>@trusted void <span class="symbol-target" id="rawInput">&nbsp;</span><a class="symbol-link" href="#rawInput">rawInput</a>(string <i>message</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Unsafe write down the <i>message</i> without any meta information.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>shared nothrow @trusted void <span class="symbol-target" id="finalize">&nbsp;</span><a class="symbol-link" href="#finalize">finalize</a>();
+<hr><div class="row-fluid declaration"><h3>@trusted void <span class="symbol-target" id="finalize">&nbsp;</span><a class="symbol-link" href="#finalize">finalize</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Used to manual shutdown protocols.</p>
 </dl>

@@ -61,6 +61,7 @@
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -98,6 +99,7 @@
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">dlogg.log</li>
 				</ul>
@@ -153,65 +155,117 @@
    ILogger.minOutputLevel property.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>interface <span class="symbol-target" id="ILogger">&nbsp;</span><a class="symbol-link" href="#ILogger">ILogger</a>;
+<hr><div class="row-fluid declaration"><h3>alias <span class="symbol-target" id="ILogger">&nbsp;</span><a class="symbol-link" href="#ILogger">ILogger</a> = IStyledLogger!(LoggingLevel).IStyledLogger;
+</h3></div>
+<div class="declaration-content"><dl><p>Default logger interface that uses <b>LoggingLevel</b> as
+   enum that describes ordering of logging levels.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>shared void <span class="symbol-target" id="logDebug">&nbsp;</span><a class="symbol-link" href="#logDebug">logDebug</a>(E...)(shared ILogger <i>logger</i>, E <i>args</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Wrapper for handy debug messages.
+</p>
+<dt>Warning:</dt><dd>
+main purpose for debug messages, thus it is not lazy.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="logInfo">&nbsp;</span><a class="symbol-link" href="#logInfo">logInfo</a>(E...)(shared ILogger <i>logger</i>, E <i>args</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Not lazy wrapper for multiple args messages</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="logInfo">&nbsp;</span><a class="symbol-link" href="#logInfo">logInfo</a>()(shared ILogger <i>logger</i>, lazy string <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Lazy wrapper for one string message</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="logWarning">&nbsp;</span><a class="symbol-link" href="#logWarning">logWarning</a>(E...)(shared ILogger <i>logger</i>, E <i>args</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Not lazy wrapper for multiple args messages</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="logWarning">&nbsp;</span><a class="symbol-link" href="#logWarning">logWarning</a>()(shared ILogger <i>logger</i>, lazy string <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Lazy wrapper for one string message</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="logError">&nbsp;</span><a class="symbol-link" href="#logError">logError</a>(E...)(shared ILogger <i>logger</i>, E <i>args</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Not lazy wrapper for multiple args messages</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="logError">&nbsp;</span><a class="symbol-link" href="#logError">logError</a>()(shared ILogger <i>logger</i>, lazy string <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Lazy wrapper for one string message</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>interface <span class="symbol-target" id="IStyledLogger">&nbsp;</span><a class="symbol-link" href="#IStyledLogger">IStyledLogger</a>(StyleEnum);
 </h3></div>
 <div class="declaration-content"><dl><p>Interface for lazy logging. Assumes to be nothrow.
-   Underlying realization should be concurrent safe.</p>
+   Underlying realization should be concurrent safe.
+</p>
+<p><b>StyleEnum</b> is enum that used to distinct logging
+   levels and define ordering for verbosity muting.</p>
 </dl>
-<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>abstract shared @property @safe void <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>(string <i>value</i>);
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>@property void <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>(string <i>value</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Setting new log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>. If the <b><i>value</i></b>
    differs from old one, logger should close
    old one and open new file.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared const nothrow @property @safe string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
+<hr><div class="row-fluid declaration"><h3>const @property string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Log file <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared nothrow @safe void <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>(lazy string <i>message</i>, LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>(lazy string <i>message</i>, StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Prints <i>message</i> into <span class="symbol-target" id="log">&nbsp;</span><a class="symbol-link" href="#log">log</a>. Displaying in the console
    controlled by minOutputLevel property.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared const nothrow @property @safe LoggingLevel <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>();
+<hr><div class="row-fluid declaration"><h3>const @property LoggingLevel <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>();
 </h3></div>
 <div class="declaration-content"><dl><dt>Returns</dt><dd>minimum log level,  will be printed in the console.</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared nothrow @property @safe void <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>(LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>@property void <span class="symbol-target" id="minOutputLevel">&nbsp;</span><a class="symbol-link" href="#minOutputLevel">minOutputLevel</a>(StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Setups minimum message <i>level</i> that goes to console.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared nothrow @property @safe LoggingLevel <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>();
+<hr><div class="row-fluid declaration"><h3>@property LoggingLevel <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Setups minimum message level that goes to file.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared nothrow @property @safe void <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>(LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>@property void <span class="symbol-target" id="minLoggingLevel">&nbsp;</span><a class="symbol-link" href="#minLoggingLevel">minLoggingLevel</a>(StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Setups minimum message <i>level</i> that goes to file.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared nothrow @safe void <span class="symbol-target" id="finalize">&nbsp;</span><a class="symbol-link" href="#finalize">finalize</a>();
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="finalize">&nbsp;</span><a class="symbol-link" href="#finalize">finalize</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Used to manual shutdown protocols.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared @safe void <span class="symbol-target" id="rawInput">&nbsp;</span><a class="symbol-link" href="#rawInput">rawInput</a>(string <i>message</i>);
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="rawInput">&nbsp;</span><a class="symbol-link" href="#rawInput">rawInput</a>(string <i>message</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Unsafe write down the <i>message</i> without any meta information.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared @safe string <span class="symbol-target" id="formatString">&nbsp;</span><a class="symbol-link" href="#formatString">formatString</a>(lazy string <i>message</i>, LoggingLevel <i>level</i>);
+<hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="formatConsoleOutput">&nbsp;</span><a class="symbol-link" href="#formatConsoleOutput">formatConsoleOutput</a>(string <i>message</i>, StyleEnum <i>level</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Format <i>message</i> with default logging style (etc. time and <i>level</i> string).</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>abstract shared @safe void <span class="symbol-target" id="reload">&nbsp;</span><a class="symbol-link" href="#reload">reload</a>();
+<hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="formatFileOutput">&nbsp;</span><a class="symbol-link" href="#formatFileOutput">formatFileOutput</a>(string <i>message</i>, StyleEnum <i>level</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Format <i>message</i> with default logging style (etc. time and <i>level</i> string).</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="reload">&nbsp;</span><a class="symbol-link" href="#reload">reload</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Checks if the log file is exists at specified <b>location</b> and
    if can't find it, recreates the file and continues write into it.
@@ -224,14 +278,6 @@
 </p>
 <dt>Note:</dt><dd>
 The method is not nothrow!</dd>
-</dl>
-</div>
-<hr><div class="row-fluid declaration"><h3>shared @trusted void <span class="symbol-target" id="logDebug">&nbsp;</span><a class="symbol-link" href="#logDebug">logDebug</a>(E...)(E <i>args</i>);
-</h3></div>
-<div class="declaration-content"><dl><p>Wrapper for handy debug messages.
-</p>
-<dt>Warning:</dt><dd>
-main purpose for debug messages, thus it is not lazy.</dd>
 </dl>
 </div>
 </div>
