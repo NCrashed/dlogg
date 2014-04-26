@@ -141,7 +141,7 @@ shared interface IStyledLogger(StyleEnum)
         /**
         *   Returns: minimum log level,  will be printed in the console.
         */
-        LoggingLevel minOutputLevel() const @property;
+        StyleEnum minOutputLevel() const @property;
 
         /**
         *   Setups minimum message level that goes to console.
@@ -151,7 +151,7 @@ shared interface IStyledLogger(StyleEnum)
         /**
         *   Setups minimum message level that goes to file.
         */
-        LoggingLevel minLoggingLevel() @property;
+        StyleEnum minLoggingLevel() @property;
         
         /**
         *   Setups minimum message level that goes to file.

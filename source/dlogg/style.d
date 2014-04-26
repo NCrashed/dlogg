@@ -47,6 +47,9 @@ mixin template generateStyle(Style, TS...)
     import std.datetime;
     import std.format;
     import std.conv;
+
+    /// Could not see style symbol while using with external packages
+    mixin("import "~moduleName!Style~" : "~Style.stringof~";");
     
     static assert(is(Style == enum), "First parameter '"~Style.stringof~"' is expected to be an enum type!");
     static assert(checkTypes!TS, "logStyle expected triples of ('"~Style.stringof~"', string, string)");
@@ -63,7 +66,7 @@ mixin template generateStyle(Style, TS...)
             enum checkTypes = false;
         } else
         {
-            enum checkTypes = is(typeof(US[0]) == Style) && isSomeString!(typeof(US[1])) && isSomeString!(typeof(US[2]))
+            enum checkTypes = is(Unqual!(typeof(US[0])) == Style) && isSomeString!(typeof(US[1])) && isSomeString!(typeof(US[2]))
                 && checkTypes!(US[3..$]);
         }
     }
