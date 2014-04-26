@@ -205,15 +205,17 @@ unittest
                 , LoggingLevel.Muted,   "",              ""
                 );
 }
-/// Example of custom style
-unittest
+version(unittest)
 {
     enum MyLevel
     {
         Error,
         Debug
     }
-    
+}
+/// Example of custom style
+unittest
+{    
     mixin generateStyle!(MyLevel
                 , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
                 , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s"
