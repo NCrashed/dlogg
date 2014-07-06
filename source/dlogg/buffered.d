@@ -59,12 +59,16 @@ synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(
         
         foreach(msg; buffer)
         {
-            scope(failure) {}
-            
-            if(minOutputLevel != LoggingLevel.Muted)
-                writeln(msg);
-                
-            delayLogger.rawInput(msg);
+            try
+            {
+	            if(minOutputLevel != LoggingLevel.Muted)
+	                writeln(msg);
+	                
+	            delayLogger.rawInput(msg);
+            } catch(Throwable th)
+            {
+            	
+            }
         }
     }
     

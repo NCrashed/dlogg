@@ -110,25 +110,30 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         */
         void log(lazy string message, StyleEnum level) @trusted
         {
-            scope(failure) {}
-
-            if(level >= mMinOutputLevel)
+            //scope(failure) {}
+            try
             {
-                string msg = formatConsoleOutput(message, level);
-                writeln(msg);
-            }
-            
-            if(level >= mMinLoggingLevel)
+	            if(level >= mMinOutputLevel)
+	            {
+	                string msg = formatConsoleOutput(message, level);
+	                writeln(msg);
+	            }
+	            
+	            if(level >= mMinLoggingLevel)
+	            {
+	                try
+	                {
+	                    rawInput(formatFileOutput(message, level));
+	                }
+	                catch(Exception e)
+	                {
+	                    if(minOutputLevel != LoggingLevel.Muted)
+	                        writeln("Failed to write into log ", name);
+	                }
+	            }
+            } catch(Throwable th)
             {
-                try
-                {
-                    rawInput(formatFileOutput(message, level));
-                }
-                catch(Exception e)
-                {
-                    if(minOutputLevel != LoggingLevel.Muted)
-                        writeln("Failed to write into log ", name);
-                }
+            	
             }
         }
         
@@ -248,10 +253,11 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     {
         if(finalized) return;
         
-        scope(failure) {}
+        //scope(failure) {}
         scope(exit) finalized = true;
         
-        close();
+        try close();
+        catch(Throwable th) {}
     }
     
     ~this()
