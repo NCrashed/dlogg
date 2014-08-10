@@ -24,29 +24,85 @@ import std.conv;
 import std.datetime;
 import std.traits;
 
-/**
-*   Standard implementation of IStyledLogger interface.
-*
-*   Example:
-*   -----------
-*   shared ILogger logger = new StrictLogger("my_awesome_log.log");
-*   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
-*   logger.logInfo("Info message!");
-*   logger.logError("Error message!");
-*   logger.logDebug("Debug message!");
-*
-*   // received USR1 signal from logrotate
-*   logger.reload;
-*   -----------
-*/
-alias StrictLogger = StyledStrictLogger!(LoggingLevel
-                , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
-                , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
-                , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
-                , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
-                , LoggingLevel.Muted,   "",              ""
-                );
-
+version(ColoredOutput)
+{
+    import colorize;
+    
+    version(Windows)
+    {
+        /**
+        *   Standard implementation of IStyledLogger interface.
+        *
+        *   Example:
+        *   -----------
+        *   shared ILogger logger = new StrictLogger("my_awesome_log.log");
+        *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
+        *   logger.logInfo("Info message!");
+        *   logger.logError("Error message!");
+        *   logger.logDebug("Debug message!");
+        *
+        *   // received USR1 signal from logrotate
+        *   logger.reload;
+        *   -----------
+        */
+        alias StrictLogger = StyledStrictLogger!(LoggingLevel
+                        , LoggingLevel.Debug,   "Debug:".color(fg.light_magenta) ~ " %1$s",   "[%2$s]: Debug: %1$s"
+                        , LoggingLevel.Notice,  "Notice:".color(fg.light_green) ~ " %1$s",  "[%2$s]: Notice: %1$s"
+                        , LoggingLevel.Warning, "Warning:".color(fg.light_yellow) ~ " %1$s", "[%2$s]: Warning: %1$s"
+                        , LoggingLevel.Fatal,   "Fatal:".color(fg.light_red) ~ " %1$s",   "[%2$s]: Fatal: %1$s"
+                        , LoggingLevel.Muted,   "",              ""
+                        );
+    } else
+    {
+        /**
+        *   Standard implementation of IStyledLogger interface.
+        *
+        *   Example:
+        *   -----------
+        *   shared ILogger logger = new StrictLogger("my_awesome_log.log");
+        *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
+        *   logger.logInfo("Info message!");
+        *   logger.logError("Error message!");
+        *   logger.logDebug("Debug message!");
+        *
+        *   // received USR1 signal from logrotate
+        *   logger.reload;
+        *   -----------
+        */
+        alias StrictLogger = StyledStrictLogger!(LoggingLevel
+                        , LoggingLevel.Debug,   "Debug:".color(fg.magenta) ~ " %1$s",   "[%2$s]: Debug: %1$s"
+                        , LoggingLevel.Notice,  "Notice:".color(fg.green) ~ " %1$s",  "[%2$s]: Notice: %1$s"
+                        , LoggingLevel.Warning, "Warning:".color(fg.light_yellow) ~ " %1$s", "[%2$s]: Warning: %1$s"
+                        , LoggingLevel.Fatal,   "Fatal:".color(fg.light_red) ~ " %1$s",   "[%2$s]: Fatal: %1$s"
+                        , LoggingLevel.Muted,   "",              ""
+                        );
+    
+    }
+} else
+{
+    /**
+    *   Standard implementation of IStyledLogger interface.
+    *
+    *   Example:
+    *   -----------
+    *   shared ILogger logger = new StrictLogger("my_awesome_log.log");
+    *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
+    *   logger.logInfo("Info message!");
+    *   logger.logError("Error message!");
+    *   logger.logDebug("Debug message!");
+    *
+    *   // received USR1 signal from logrotate
+    *   logger.reload;
+    *   -----------
+    */
+    alias StrictLogger = StyledStrictLogger!(LoggingLevel
+                    , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
+                    , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
+                    , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
+                    , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
+                    , LoggingLevel.Muted,   "",              ""
+                    );
+}
 /**
 *   Implementation of $(B IStyledLogger) with custom style. Usually you want to use
 *   $(B StrictLogger) alias, but there are cases where you want custom styles.
@@ -116,7 +172,8 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	            if(level >= mMinOutputLevel)
 	            {
 	                string msg = formatConsoleOutput(message, level);
-	                writeln(msg);
+	                version(ColoredOutput) cwriteln(msg);
+	                else writeln(msg);
 	            }
 	            
 	            if(level >= mMinLoggingLevel)
@@ -307,12 +364,8 @@ unittest
     import std.file;
     import std.stdio;
 
-    write("Testing strict logger... ");
-    scope(success) writeln("Finished!");
-    scope(failure) writeln("Failed!");
-
     auto logger = new shared StrictLogger("TestLog");
-    logger.minOutputLevel = LoggingLevel.Muted;
+    logger.minOutputLevel = LoggingLevel.Notice;
     logger.log("Notice msg!", LoggingLevel.Notice);
     logger.log("Warning msg!", LoggingLevel.Warning);
     logger.log("Debug msg!", LoggingLevel.Debug);
@@ -352,5 +405,6 @@ unittest
     logger.logError("some string");
     logger.logError("first string", "second string");
     
+    logger.close();
     remove(logger.name);
 }
