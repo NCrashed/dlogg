@@ -11,6 +11,8 @@ Library that consilidates logging utilites according following goals:
 * Working with daemons
 * Log rotating 
 * Lazy logging including buffered loggers
+* Customizeable messages and logging levels
+* Support for colorful output via [d-colorize](https://github.com/yamadapc/d-colorize) [Optional]
 
 Installing
 ===========
@@ -119,4 +121,30 @@ mixin generateStyle!(MyLevel
             , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
             , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s"
             );
+```
+
+Colored output
+===============
+You can use [d-colorize](https://github.com/yamadapc/d-colorize) package to color your styled logger:
+```D
+        alias StrictLogger = StyledStrictLogger!(LoggingLevel
+                        , LoggingLevel.Debug,   "Debug:".color(fg.light_magenta) ~ " %1$s",   "[%2$s]: Debug: %1$s"
+                        , LoggingLevel.Notice,  "Notice:".color(fg.light_green) ~ " %1$s",  "[%2$s]: Notice: %1$s"
+                        , LoggingLevel.Warning, "Warning:".color(fg.light_yellow) ~ " %1$s", "[%2$s]: Warning: %1$s"
+                        , LoggingLevel.Fatal,   "Fatal:".color(fg.light_red) ~ " %1$s",   "[%2$s]: Fatal: %1$s"
+                        , LoggingLevel.Muted,   "",              ""
+                        );
+```
+
+And to use colorized version of default loggers add following to your `dub.json`:
+```JSON
+{
+	...
+	"dependencies": {
+		"dlogg": ">=0.3.2"
+	},
+	"subConfigurations": {
+		"dlogg": "colorized"
+	}
+}
 ```
