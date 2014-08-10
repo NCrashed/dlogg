@@ -4,6 +4,16 @@
 	"copyright": "Copyright © 2014, Anton Gushcha",
 	"authors": ["NCrashed <ncrashed@gmail.com>"],
 	"license": "MIT",
-	"dependencies": {
-	}
+	"configurations": [
+		{
+			"name": "default"
+		},
+		{
+			"name": "colorized",
+			"versions": ["ColoredOutput"],
+			"dependencies": {
+				"colorize": ">=1.0.0"
+			}
+		}
+	]
 }
