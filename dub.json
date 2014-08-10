@@ -10,6 +10,7 @@
 		},
 		{
 			"name": "colorized",
+			"versions": ["ColoredOutput"],
 			"dependencies": {
 				"colorize": ">=1.0.0"
 			}
