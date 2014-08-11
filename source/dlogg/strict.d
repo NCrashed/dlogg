@@ -373,10 +373,12 @@ unittest
     logger.finalize();
 
     auto f = new std.stdio.File(logger.name, "r");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Notice msg!",  LoggingLevel.Notice),  "Log notice testing fail!");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Warning msg!", LoggingLevel.Warning), "Log warning testing fail!");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Debug msg!",   LoggingLevel.Debug),   "Log debug testing fail!");
-    assert(replace(f.readln()[0..$-1], regex(r"[\[][\p{InBasicLatin}]*[\]][:]"), "") == logger.formatConsoleOutput("Fatal msg!",   LoggingLevel.Fatal),   "Log fatal testing fail!");
+    auto r = regex(r"[\[][\p{InBasicLatin}]*[\]][:]");
+    
+    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Notice msg!",  LoggingLevel.Notice).replace(r, ""),  "Log notice testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Warning msg!", LoggingLevel.Warning).replace(r, ""), "Log warning testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Debug msg!",   LoggingLevel.Debug).replace(r, ""),   "Log debug testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Fatal msg!",   LoggingLevel.Fatal).replace(r, ""),   "Log fatal testing fail!");
     f.close;
 
     logger = new shared StrictLogger("TestLog");
