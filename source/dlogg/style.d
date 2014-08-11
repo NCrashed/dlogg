@@ -188,7 +188,7 @@ mixin template generateStyle(Style, TS...)
         auto writer = appender!string();
         
         //pragma(msg, genSwitch!("level", 2, "message", "timeString", TS));
-        mixin(genSwitch!("level", 1, "message", "timeString", TS));
+        mixin(genSwitch!("level", 2, "message", "timeString", TS));
         
         return writer.data;
     }
