@@ -141,7 +141,7 @@ And to use colorized version of default loggers add following to your `dub.json`
 {
 	...
 	"dependencies": {
-		"dlogg": ">=0.3.2"
+		"dlogg": ">=0.3.3"
 	},
 	"subConfigurations": {
 		"dlogg": "colorized"
