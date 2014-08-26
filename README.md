@@ -55,7 +55,7 @@ Note that major logging funcs are lazy and we don't have overhead while logg cal
 
 And finally full example:
 ```D
-   shared ILogger logger = new StrictLogger("my_awesome_log.log");
+   shared ILogger logger = new shared StrictLogger("my_awesome_log.log");
    logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
    logger.logInfo("Info message!");
    logger.logError("Error message!");
