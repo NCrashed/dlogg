@@ -63,48 +63,50 @@ nothrow @trusted
     {
         debug
         {
-            scope(failure) {}
-            string msg = text(args);
-            logger.log(msg, LoggingLevel.Debug);
+            try logger.log(text(args), LoggingLevel.Debug);
+            catch(Exception e) {}
         }
     }
     
     /// Not lazy wrapper for multiple args messages
     void logInfo(E...)(shared ILogger logger, E args)
     {
-        scope(failure) {}
-        logger.log(text(args), LoggingLevel.Notice);
+        try logger.log(text(args), LoggingLevel.Notice);
+        catch(Exception e) {}
     }
 
     /// Lazy wrapper for one string message
     void logInfo()(shared ILogger logger, lazy string message)
     {
+        if(message is null) return;
         logger.log(message, LoggingLevel.Notice);
     }
     
     /// Not lazy wrapper for multiple args messages
     void logWarning(E...)(shared ILogger logger, E args)
     {
-        scope(failure) {}
-        logger.log(text(args), LoggingLevel.Warning);
+        try logger.log(text(args), LoggingLevel.Warning);
+        catch(Exception e) {}
     }
     
     /// Lazy wrapper for one string message
     void logWarning()(shared ILogger logger, lazy string message)
     {
+        if(message is null) return;
         logger.log(message, LoggingLevel.Warning);
     }
     
     /// Not lazy wrapper for multiple args messages
     void logError(E...)(shared ILogger logger, E args)
     {
-        scope(failure) {}
-        logger.log(text(args), LoggingLevel.Fatal);
+        try logger.log(text(args), LoggingLevel.Fatal);
+        catch(Exception e) {}
     }
     
     /// Lazy wrapper for one string message
     void logError()(shared ILogger logger, lazy string message)
     {
+        if(message is null) return;
         logger.log(message, LoggingLevel.Fatal);
     }
 }
