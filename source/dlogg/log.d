@@ -78,8 +78,12 @@ nothrow @trusted
     /// Lazy wrapper for one string message
     void logInfo()(shared ILogger logger, lazy string message)
     {
-        if(message is null) return;
-        logger.log(message, LoggingLevel.Notice);
+    	try
+    	{
+    		if(message is null) return;
+    		logger.log(message, LoggingLevel.Notice);
+		} 
+    	catch(Exception e) {}
     }
     
     /// Not lazy wrapper for multiple args messages
@@ -92,8 +96,12 @@ nothrow @trusted
     /// Lazy wrapper for one string message
     void logWarning()(shared ILogger logger, lazy string message)
     {
-        if(message is null) return;
-        logger.log(message, LoggingLevel.Warning);
+    	try
+    	{
+	        if(message is null) return;
+	        logger.log(message, LoggingLevel.Warning);
+		} 
+    	catch(Exception e) {}
     }
     
     /// Not lazy wrapper for multiple args messages
@@ -106,8 +114,12 @@ nothrow @trusted
     /// Lazy wrapper for one string message
     void logError()(shared ILogger logger, lazy string message)
     {
-        if(message is null) return;
-        logger.log(message, LoggingLevel.Fatal);
+    	try
+    	{
+	        if(message is null) return;
+	        logger.log(message, LoggingLevel.Fatal);
+		} 
+    	catch(Exception e) {}
     }
 }
     
