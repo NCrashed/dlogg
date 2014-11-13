@@ -410,3 +410,37 @@ unittest
     logger.close();
     remove(logger.name);
 }
+// issue #3 Testing custom time formatting
+unittest
+{
+    import std.datetime;
+    import std.file;
+    
+    string myTimeFormatting(DistType t, SysTime time)
+    {
+        final switch(t)
+        {
+            case(DistType.Console): return time.toSimpleString();
+            case(DistType.File): return time.toISOExtString();
+        }
+    }
+    
+    alias MyLogger = StyledStrictLogger!(LoggingLevel, myTimeFormatting
+                    , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
+                    , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
+                    , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
+                    , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
+                    , LoggingLevel.Muted,   "",              ""
+                    );
+    
+    auto logger = new shared MyLogger("TimeFormatTestLog");
+    scope(exit)
+    {
+        logger.close();
+        if(exists(logger.name)) remove(logger.name);
+    }
+    
+    logger.logInfo("Msg1");
+    logger.logWarning("Msg2");
+    logger.logError("Msg2");
+}
