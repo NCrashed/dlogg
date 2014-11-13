@@ -26,6 +26,30 @@
 module dlogg.style;
 
 /**
+*   Enum type that is used in time formatting function in $(B generateStyle).
+*
+*   Note: the type is exposed to allow user to implement its own time formatting
+*   functions.
+*
+*   Example:
+*   --------
+*   string myTimeFormatting(DistType t, SysTime time)
+*   {
+*       final switch(t)
+*       {
+*           case(DistType.Console): return time.toSimpleString();
+*           case(DistType.File): return time.toISOExtString();
+*       }
+*   }
+*   --------
+*/
+enum DistType
+{
+    Console,
+    File
+}
+
+/**
 *   Utility mixin template that generates facilities for output message formatting
 *   for console output and file output.
 *
@@ -33,21 +57,47 @@ module dlogg.style;
 *   Order of values defines behavior of muting (styles that less current low border aren't
 *   printed to output).
 *
-*   $(TS) has format of list of triples ($(B Style) value, string, string). Style value
-*   defines for which logging level following format strings are. First format string is used
+*   First value of $(B Args) could be a function/delegate for customizing time formatting.
+*   It should have return type of $(B string) and parameters of $(B (DistType t, SysTime time)).
+*   Where $(B t) tells when function/delegate is called to format output to file or console, 
+*   $(B time) is a time that should be converted to string.
+*
+*   Rest part of $(Args) has format of list of triples ($(B Style) value, string, string). Style 
+*   value defines for which logging level following format strings are. First format string is used
 *   for console output, the second one is for file output.
 *
 *   Format strings could use two arguments: '%1$s' is message that is passed to a logger and
 *   '%2$s' is current time string. Formatting is handled by $(B std.format) module. 
 */
-mixin template generateStyle(Style, TS...)
+mixin template generateStyle(Style, Args...)
 {
     import std.array;
     import std.traits;
     import std.datetime;
     import std.format;
     import std.conv;
-
+    import dlogg.style;
+    
+    static if(Args.length > 0 && isCallable!(Args[0]))
+    {
+        alias TS = Args[1 .. $];
+        
+        alias timeFormat = Args[0];
+        alias Params = ParameterTypeTuple!timeFormat;
+        alias RetT = ReturnType!timeFormat;
+        static assert(is(RetT == string), text(&timeFormat, " should have return type of string but got ", RetT.stringof));
+        static assert(Params.length == 2 && is(Params[0] == DistType) && is(Params[1] == SysTime),
+            text(&timeFormat, " should have two parameters of types (DistType, SysTime) but got ", Params.stringof));
+    } else
+    {
+        alias TS = Args;
+        
+        string timeFormat(DistType t, SysTime time)
+        {
+            return time.toISOExtString;
+        }
+    }
+    
     /// Could not see style symbol while using with external packages
     mixin("import "~moduleName!Style~" : "~Style.stringof~";");
     
@@ -171,9 +221,9 @@ mixin template generateStyle(Style, TS...)
             ~ genCases!(US) ~ "}\n";
     }
     
-    string formatConsoleOutput( string message, Style level) @trusted
+    string formatConsoleOutput(string message, Style level) @trusted
     {
-        auto timeString = Clock.currTime.toISOExtString();
+        auto timeString = timeFormat(DistType.Console, Clock.currTime);
         auto writer = appender!string();
         
         //pragma(msg, genSwitch!("level", 1, "message", "timeString", TS));
@@ -182,9 +232,9 @@ mixin template generateStyle(Style, TS...)
         return writer.data;
     }
     
-    string formatFileOutput( string message, Style level) @trusted
+    string formatFileOutput(string message, Style level) @trusted
     {
-        auto timeString = Clock.currTime.toISOExtString();
+        auto timeString = timeFormat(DistType.File, Clock.currTime);
         auto writer = appender!string();
         
         //pragma(msg, genSwitch!("level", 2, "message", "timeString", TS));
@@ -217,6 +267,25 @@ version(unittest)
 unittest
 {    
     mixin generateStyle!(MyLevel
+                , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
+                , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s"
+                );
+}
+/// Example of custom time formatting
+unittest
+{
+    import std.datetime;
+    
+    string myTimeFormatting(DistType t, SysTime time)
+    {
+        final switch(t)
+        {
+            case(DistType.Console): return time.toSimpleString();
+            case(DistType.File): return time.toISOExtString();
+        }
+    }
+    
+    mixin generateStyle!(MyLevel, myTimeFormatting
                 , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
                 , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s"
                 );
