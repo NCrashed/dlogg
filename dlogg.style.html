@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<title>dlogg.style - dlogg documentation</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<!-- styles -->
+	<link href="bootDoc/assets/css/bootstrap.css" rel="stylesheet">
+	<style type="text/css">
+		body {
+		padding-top: 60px;
+		padding-bottom: 40px;
+		}
+		.sidebar-nav {
+		padding: 9px 0;
+		}
+	</style>
+	<link href="bootDoc/assets/css/bootstrap-responsive.css" rel="stylesheet">
+	<link href="bootDoc/bootdoc.css" rel="stylesheet">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<!-- fav and touch icons -->
+	<link rel="shortcut icon" href="">
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="bootDoc/assets/ico/apple-touch-icon-114-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="bootDoc/assets/ico/apple-touch-icon-72-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" href="bootDoc/assets/ico/apple-touch-icon-57-precomposed.png">
+	
+	<!-- Introduce DDoc settings required by JavaScript -->
+	<script type="text/javascript">
+		var Title = 'dlogg.style';
+		var SourceRepository = 'https://github.com/NCrashed/dlogg/tree/master/source';
+		var PackageSeparator = '.';
+	</script>
+	
+	<style type="text/css">
+		.ddoc-icon-variable { background-image: url('bootDoc/ddoc-icons/var.png'); }
+		.ddoc-icon-function { background-image: url('bootDoc/ddoc-icons/func.png'); }
+		.ddoc-icon-property { background-image: url('bootDoc/ddoc-icons/property.png'); }
+		.ddoc-icon-struct { background-image: url('bootDoc/ddoc-icons/struct.png'); }
+		.ddoc-icon-class { background-image: url('bootDoc/ddoc-icons/class.png'); }
+		.ddoc-icon-enum { background-image: url('bootDoc/ddoc-icons/enum.png'); }
+		.ddoc-icon-template { background-image: url('bootDoc/ddoc-icons/template.png'); }
+	</style>
+	</head>
+
+	<body>
+	<!--
+	JavaScript reaps the module list from this element.
+	This is required for the MODULES macro to be reusable
+	in a noscript element later.
+	-->
+	<ul id="module-list-source" class="hidden">
+		
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
+	</ul>
+	
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="index.html">dlogg</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li class="active"><a href="index.html">Reference</a></li>
+					</ul>
+					
+					<form id="gotosymbol" class="navbar-search pull-left hidden">
+						<input type="text" class="search-query" placeholder="Go to symbol in dlogg.style" data-provide="typeahead" data-items="4">
+					</form>
+					
+					<p class="navbar-text pull-right"><a href="https://github.com/NCrashed/dlogg/tree/master">Github Page</a></p>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<div class="span2">
+				<div class="well sidebar-nav">
+				<ul class="nav nav-list">
+					<li id="module-list" class="nav-header sidebar-list-entry">Modules<li>
+					<noscript>
+						
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.log.html" title="dlogg.log"><i class="icon-th"></i>dlogg.log</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.strict.html" title="dlogg.strict"><i class="icon-th"></i>dlogg.strict</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.buffered.html" title="dlogg.buffered"><i class="icon-th"></i>dlogg.buffered</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="dlogg.style.html" title="dlogg.style"><i class="icon-th"></i>dlogg.style</a></li>
+					</noscript>
+					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">dlogg.style</li>
+				</ul>
+				</div><!--/.well -->
+			</div><!--/span-->
+			
+			<div class="span10">
+				<div class="row-fluid">
+					<div class="span11">
+						<ul id="module-breadcrumb" class="breadcrumb">
+							<noscript><h1>dlogg.style</h1></noscript>
+						</ul>
+						
+					</div>
+					<div class="span1 offset11">
+						<a href="index.html"><img src="" alt="dlogg"/></a>
+					</div>
+				</div>
+				<div id="declaration-list">
+					<!-- Generated by Ddoc from ../source/dlogg/style.d -->
+<dl><p>Module defines facilities for custom styling of logger messages. Template mixin 
+   generates code for your logging styles (represented by an enum) that can be mixed into logger
+   implementation.
+</p>
+<p>   See <b>generateStyle</b> for detailed description.
+<br><br>
+
+   Example of default logger <span class="symbol-target" id="style">&nbsp;</span><a class="symbol-link" href="#style">style</a>:
+<pre class="d_code"><span class="d_keyword">import</span> dlogg.log, dlogg.<u>style</u>;
+
+<span class="d_keyword">mixin</span> generateStyle!(LoggingLevel
+            , LoggingLevel.Debug,   <span class="d_string">"Debug: %1$s"</span>,   <span class="d_string">"[%2$s] Debug: %1$s"</span>
+            , LoggingLevel.Notice,  <span class="d_string">"Notice: %1$s"</span>,  <span class="d_string">"[%2$s] Notice: %1$s"</span>
+            , LoggingLevel.Warning, <span class="d_string">"Warning: %1$s"</span>, <span class="d_string">"[%2$s] Warning: %1$s"</span>
+            , LoggingLevel.Fatal,   <span class="d_string">"Fatal: %1$s"</span>,   <span class="d_string">"[%2$s] Fatal: %1$s"</span>
+            , LoggingLevel.Muted,   <span class="d_string">""</span>,              <span class="d_string">""</span>
+            );
+</pre>
+
+</p>
+<dt>License</dt><dd>Subject to the terms of the MIT license, as written in the included LICENSE file.
+</dd>
+<dt>Authors</dt><dd>NCrashed <ncrashed@gmail.com></dd>
+</dl>
+<hr><div class="row-fluid declaration"><h3>enum <span class="symbol-target" id="DistType">&nbsp;</span><a class="symbol-link" href="#DistType">DistType</a>: int;
+</h3></div>
+<div class="declaration-content"><dl><p>Enum type that is used in time formatting function in <b>generateStyle</b>.
+</p>
+<dt>Note:</dt><dd>
+the type is exposed to allow user to implement its own time formatting
+   functions.
+
+</dd>
+<dt>Example:</dt><dd>
+<pre class="d_code">string myTimeFormatting(<u>DistType</u> t, SysTime time)
+{
+    <span class="d_keyword">final</span> <span class="d_keyword">switch</span>(t)
+    {
+        <span class="d_keyword">case</span>(<u>DistType</u>.Console): <span class="d_keyword">return</span> time.toSimpleString();
+        <span class="d_keyword">case</span>(<u>DistType</u>.File): <span class="d_keyword">return</span> time.toISOExtString();
+    }
+}
+</pre>
+</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>template <span class="symbol-target" id="generateStyle">&nbsp;</span><a class="symbol-link" href="#generateStyle">generateStyle</a>(Style, Args...)</h3></div>
+<div class="declaration-content"><dl><p>Utility mixin template that generates facilities for output message formatting
+   for console output and file output.
+</p>
+<p><b>Style</b> parameter defines what type is used as logging level. It must be an enum.
+   Order of values defines behavior of muting (styles that less current low border aren't
+   printed to output).
+<br><br>
+
+   First value of <b>Args</b> could be a function/delegate for customizing time formatting.
+   It should have return type of <b>string</b> and parameters of <b>(DistType t, SysTime time)</b>.
+   Where <b>t</b> tells when function/delegate is called to format output to file or console,
+   <b>time</b> is a time that should be converted to string.
+<br><br>
+
+   Rest part of  has format of list of triples (<b>Style</b> value, string, string). Style
+   value defines for which logging level following format strings are. First format string is used
+   for console output, the second one is for file output.
+<br><br>
+
+   Format strings could use two arguments: '%1$s' is message that is passed to a logger and
+   '%2$s' is current time string. Formatting is handled by <b>std.format</b> module.</p>
+<dt>Examples</dt><dd>Example of default style
+<pre class="d_code">
+<span class="d_keyword">import</span> dlogg.log;
+<span class="d_keyword">mixin</span> <u>generateStyle</u>!(LoggingLevel
+            , LoggingLevel.Debug,   <span class="d_string">"Debug: %1$s"</span>,   <span class="d_string">"[%2$s] Debug: %1$s"</span>
+            , LoggingLevel.Notice,  <span class="d_string">"Notice: %1$s"</span>,  <span class="d_string">"[%2$s] Notice: %1$s"</span>
+            , LoggingLevel.Warning, <span class="d_string">"Warning: %1$s"</span>, <span class="d_string">"[%2$s] Warning: %1$s"</span>
+            , LoggingLevel.Fatal,   <span class="d_string">"Fatal: %1$s"</span>,   <span class="d_string">"[%2$s] Fatal: %1$s"</span>
+            , LoggingLevel.Muted,   <span class="d_string">""</span>,              <span class="d_string">""</span>
+            );
+</pre>
+</dd></dl>
+</div>
+
+
+				</div>
+				
+				<hr>
+				
+				<footer class="pull-left">
+					<p>Page generated with <a href="https://github.com/JakobOvrum/bootDoc">bootDoc</a>.</p>
+				</footer>
+				
+				<footer class="pull-right">
+					<p>&copy; © 2013-2014 Anton Gushcha
+ 2014-2014</p>
+				</footer>
+			</div>
+		</div>
+	</div><!--/.fluid-container-->
+
+	<!-- Bootstrap javascript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="bootDoc/assets/js/jquery.min.js"></script>
+	<script src="bootDoc/assets/js/bootstrap.min.js"></script>
+	
+	<!-- bootDoc javascript
+	================================================== -->
+	<script src="bootDoc/bootdoc.js"></script>
+	
+	</body>
+</html>
