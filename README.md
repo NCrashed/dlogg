@@ -148,3 +148,41 @@ And to use colorized version of default loggers add following to your `dub.json`
 	}
 }
 ```
+
+Custom time formatting
+======================
+
+You can pass function or delegate to logger style to control how time is formatted. The function should have
+`string` return type and parameters of `(DistType t, SysTime time)` where `t` refers to distination (file or console)
+where message is printed to and `time` is a time value that should be converted to string by your function.
+
+Example of usage:
+```D
+    import dlogg.strict;
+    import dlogg.style;
+    import std.datetime;
+    
+    string myTimeFormatting(DistType t, SysTime time)
+    {
+        final switch(t)
+        {
+            case(DistType.Console): return time.toSimpleString();
+            case(DistType.File): return time.toISOExtString();
+        }
+    }
+    
+    alias MyLogger = StyledStrictLogger!(LoggingLevel, myTimeFormatting
+                    , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
+                    , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
+                    , LoggingLevel.Warning, "Warning: %1$s", "[%2$s]: Warning: %1$s"
+                    , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
+                    , LoggingLevel.Muted,   "",              ""
+                    );
+    
+    auto logger = new shared MyLogger("TimeFormatTestLog");
+    scope(exit) logger.close();
+    
+    logger.logInfo("Msg1");
+    logger.logWarning("Msg2");
+    logger.logError("Msg2");
+```
