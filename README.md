@@ -19,7 +19,7 @@ Installing
 Add following in your dub package file:
 ```Json
 "dependencies": {
-  "dlogg": ">=0.1.0"
+  "dlogg": ">=0.4.0"
 }
 ```
 
