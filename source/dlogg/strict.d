@@ -16,7 +16,6 @@ module dlogg.strict;
 public import dlogg.log;
 import dlogg.style;
 
-import std.stream;
 import std.path;
 import std.stdio;
 import std.file;
@@ -27,7 +26,7 @@ import std.traits;
 version(ColoredOutput)
 {
     import colorize;
-    
+
     version(Windows)
     {
         /**
@@ -36,7 +35,7 @@ version(ColoredOutput)
         *   Example:
         *   -----------
         *   shared ILogger logger = new StrictLogger("my_awesome_log.log");
-        *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
+        *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console
         *   logger.logInfo("Info message!");
         *   logger.logError("Error message!");
         *   logger.logDebug("Debug message!");
@@ -60,7 +59,7 @@ version(ColoredOutput)
         *   Example:
         *   -----------
         *   shared ILogger logger = new StrictLogger("my_awesome_log.log");
-        *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
+        *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console
         *   logger.logInfo("Info message!");
         *   logger.logError("Error message!");
         *   logger.logDebug("Debug message!");
@@ -76,7 +75,7 @@ version(ColoredOutput)
                         , LoggingLevel.Fatal,   "Fatal:".color(fg.light_red) ~ " %1$s",   "[%2$s]: Fatal: %1$s"
                         , LoggingLevel.Muted,   "",              ""
                         );
-    
+
     }
 } else
 {
@@ -86,7 +85,7 @@ version(ColoredOutput)
     *   Example:
     *   -----------
     *   shared ILogger logger = new StrictLogger("my_awesome_log.log");
-    *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console 
+    *   logger.minOutputLevel = LoggingLevel.Warning; // info msgs won't be printed in console
     *   logger.logInfo("Info message!");
     *   logger.logError("Error message!");
     *   logger.logDebug("Debug message!");
@@ -114,7 +113,7 @@ version(ColoredOutput)
 *       Error,
 *       Debug
 *   }
-*   
+*
 *   alias MyLogger = StyledStrictLogger!(MyLevel
 *               , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
 *               , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s");
@@ -126,7 +125,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 {
     mixin generateStyle!(StyleEnum, US);
     alias thistype = StyledStrictLogger!(StyleEnum, US);
-    
+
     /// Option how to open logging file
     enum Mode
     {
@@ -135,7 +134,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         /// Override, start new file
         Rewrite
     }
-    
+
     /**
     *   Log file name.
     */
@@ -152,14 +151,14 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     void name(string value) @property @trusted
     {
         if(mName == value) return;
-        
+
         close();
         mName = value;
         initialize(mSavedMode);
     }
-    
+
     nothrow
-    { 
+    {
         /**
         *   Prints message into log. Displaying in the console
         *   controlled by minOutputLevel property.
@@ -175,7 +174,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	                version(ColoredOutput) cwriteln(msg);
 	                else writeln(msg);
 	            }
-	            
+
 	            if(level >= mMinLoggingLevel)
 	            {
 	                try
@@ -190,10 +189,10 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	            }
             } catch(Throwable th)
             {
-            	
+
             }
         }
-        
+
         /**
         *   Returns: minimum log level,  will be printed in the console.
         */
@@ -203,13 +202,13 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         }
 
         /**
-        *   Setups minimum log level, 
+        *   Setups minimum log level,
         */
         void minOutputLevel(StyleEnum level) @property @trusted
         {
             mMinOutputLevel = level;
         }
-        
+
         /**
         *   Setups minimum message level that goes to file.
         */
@@ -217,7 +216,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         {
             return mMinLoggingLevel;
         }
-        
+
         /**
         *   Setups minimum message level that goes to file.
         */
@@ -232,7 +231,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     *   if can't find it, recreates the file and continues write into it.
     *
     *   Useful for $(B logrotate) utility. GNU/Linux system checks file identity by
-    *   inode, that doesn't change while renaming. Thus after renaming the file at 
+    *   inode, that doesn't change while renaming. Thus after renaming the file at
     *   $(B location) log continues write into the renamed file. The call to the
     *   $(B reload) method force splitting log into two parts.
     */
@@ -243,20 +242,20 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
             initialize(mSavedMode);
         }
     }
-    
+
     /**
     *   Creates log at $(B dir)/$(B name). Tries to create parent directory
     *   and all sub directories.
     *
     *   Note: Can throw if there is a problem with access permissions.
-    */ 
+    */
     this(string name, Mode mode = Mode.Rewrite) @trusted
     {
         mName = name;
         mSavedMode = mode;
         initialize(mode);
     }
-    
+
     /**
     *   Tries to create log file at $(B location).
     */
@@ -269,54 +268,54 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
             {
                 dir.mkdirRecurse;
             }
-            mLogFiles[this] = new std.stream.File(name, mapMode(mode));
-        } 
-        catch(OpenException e)
+            mLogFiles[this] = File(name, mapMode(mode));
+        }
+        catch(Exception e)
         {
             throw new Exception(text("Failed to create log at '", name, "'. Details: ", e.msg));
         }
     }
-    
+
     /// Transforms custom mode to file open mode
-    private static FileMode mapMode(Mode mode)
+    private static string mapMode(Mode mode)
     {
         final switch(mode)
         {
-            case(Mode.Append): return FileMode.Append;
-            case(Mode.Rewrite): return FileMode.OutNew;
+            case(Mode.Append): return "a";
+            case(Mode.Rewrite): return "w";
         }
-    } 
-    
+    }
+
     protected this()
     {
         mName = "";
         mMinOutputLevel = StyleEnum.min;
         mMinLoggingLevel = StyleEnum.min;
     }
-    
+
     /**
     *   Unsafe write down the message without any meta information.
     */
     void rawInput(string message)  @trusted
     {
         if(this in mLogFiles)
-            mLogFiles[this].writeLine(message);
+            mLogFiles[this].writeln(message);
     }
-    
+
     /**
     *   Used to manual shutdown protocols.
     */
     void finalize() @trusted
     {
         if(finalized) return;
-        
+
         //scope(failure) {}
         scope(exit) finalized = true;
-        
+
         try close();
         catch(Throwable th) {}
     }
-    
+
     ~this()
     {
         finalize();
@@ -325,12 +324,12 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     private
     {
         string mName;
-        __gshared std.stream.File[shared thistype] mLogFiles;
+        __gshared File[shared thistype] mLogFiles;
         StyleEnum mMinOutputLevel;
         StyleEnum mMinLoggingLevel;
         bool finalized = false;
         Mode mSavedMode;
-        
+
         void close()
         {
             if(this in mLogFiles)
@@ -345,7 +344,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 version(unittest)
 {
     import std.concurrency;
-    
+
     void testThread(shared ILogger logger, Tid owner, int i, uint n)
     {
         foreach(j; 1 .. n)
@@ -353,7 +352,7 @@ version(unittest)
             logger.logInfo(to!string(j));
             logger.logError(to!string(j));
         }
-        
+
         send(owner, true);
     }
 }
@@ -374,7 +373,7 @@ unittest
 
     auto f = new std.stdio.File(logger.name, "r");
     auto r = regex(r"[\[][\p{InBasicLatin}]*[\]][:]");
-    
+
     assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Notice msg!",  LoggingLevel.Notice).replace(r, ""),  "Log notice testing fail!");
     assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Warning msg!", LoggingLevel.Warning).replace(r, ""), "Log warning testing fail!");
     assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Debug msg!",   LoggingLevel.Debug).replace(r, ""),   "Log debug testing fail!");
@@ -384,21 +383,21 @@ unittest
     logger = new shared StrictLogger("TestLog");
     scope(exit) logger.close();
     logger.minOutputLevel = LoggingLevel.Muted;
-    
+
     immutable n = 10;
     foreach(i; 1 .. n)
     {
         spawn(&testThread, logger, thisTid, i, n);
     }
-    
+
     auto t = TickDuration.currSystemTick + cast(TickDuration)dur!"seconds"(2);
     auto ni = 0;
-    while(ni < n && t > TickDuration.currSystemTick) 
+    while(ni < n && t > TickDuration.currSystemTick)
     {
         ni += 1;
     }
     assert(ni == n, "Concurrent logging test is failed!");
-    
+
     // Testing overloading
     logger.logInfo("some string");
     logger.logInfo("first string", "second string");
@@ -406,7 +405,7 @@ unittest
     logger.logWarning("first string", "second string");
     logger.logError("some string");
     logger.logError("first string", "second string");
-    
+
     logger.close();
     remove(logger.name);
 }
@@ -415,7 +414,7 @@ unittest
 {
     import std.datetime;
     import std.file;
-    
+
     string myTimeFormatting(DistType t, SysTime time)
     {
         final switch(t)
@@ -424,7 +423,7 @@ unittest
             case(DistType.File): return time.toISOExtString();
         }
     }
-    
+
     alias MyLogger = StyledStrictLogger!(LoggingLevel, myTimeFormatting
                     , LoggingLevel.Debug,   "Debug: %1$s",   "[%2$s]: Debug: %1$s"
                     , LoggingLevel.Notice,  "Notice: %1$s",  "[%2$s]: Notice: %1$s"
@@ -432,14 +431,14 @@ unittest
                     , LoggingLevel.Fatal,   "Fatal: %1$s",   "[%2$s]: Fatal: %1$s"
                     , LoggingLevel.Muted,   "",              ""
                     );
-    
+
     auto logger = new shared MyLogger("TimeFormatTestLog");
     scope(exit)
     {
         logger.close();
         if(exists(logger.name)) remove(logger.name);
     }
-    
+
     logger.logInfo("Msg1");
     logger.logWarning("Msg2");
     logger.logError("Msg2");
