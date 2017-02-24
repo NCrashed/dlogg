@@ -3,3 +3,5 @@
 /libdlogg.a
 /__test__library__
 .dub
+*.lib
+*.exe
