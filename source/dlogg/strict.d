@@ -183,7 +183,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	                }
 	                catch(Exception e)
 	                {
-	                    if(minOutputLevel != LoggingLevel.Muted)
+	                    if(minOutputLevel != StyleEnum.max)
 	                        writeln("Failed to write into log ", name);
 	                }
 	            }
