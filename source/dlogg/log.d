@@ -53,13 +53,13 @@ enum LoggingLevel
 alias ILogger = IStyledLogger!(LoggingLevel);
 
 // wrappers for easy logging
-nothrow @trusted
+nothrow
 {
     /**
     *   Wrapper for handy debug messages.
     *   Warning: main purpose for debug messages, thus it is not lazy.
     */
-    void logDebug(E...)(shared ILogger logger, E args)
+    void logDebug(E...)(shared ILogger logger, E args) @trusted
     {
         debug
         {
@@ -69,14 +69,14 @@ nothrow @trusted
     }
     
     /// Not lazy wrapper for multiple args messages
-    void logInfo(E...)(shared ILogger logger, E args)
+    void logInfo(E...)(shared ILogger logger, E args) @trusted
     {
         try logger.log(text(args), LoggingLevel.Notice);
         catch(Exception e) {}
     }
 
     /// Lazy wrapper for one string message
-    void logInfo()(shared ILogger logger, lazy string message)
+    void logInfo()(shared ILogger logger, lazy string message) @trusted
     {
     	try
     	{
@@ -87,14 +87,14 @@ nothrow @trusted
     }
     
     /// Not lazy wrapper for multiple args messages
-    void logWarning(E...)(shared ILogger logger, E args)
+    void logWarning(E...)(shared ILogger logger, E args) @trusted
     {
         try logger.log(text(args), LoggingLevel.Warning);
         catch(Exception e) {}
     }
     
     /// Lazy wrapper for one string message
-    void logWarning()(shared ILogger logger, lazy string message)
+    void logWarning()(shared ILogger logger, lazy string message) @trusted
     {
     	try
     	{
@@ -105,14 +105,14 @@ nothrow @trusted
     }
     
     /// Not lazy wrapper for multiple args messages
-    void logError(E...)(shared ILogger logger, E args)
+    void logError(E...)(shared ILogger logger, E args) @trusted
     {
         try logger.log(text(args), LoggingLevel.Fatal);
         catch(Exception e) {}
     }
     
     /// Lazy wrapper for one string message
-    void logError()(shared ILogger logger, lazy string message)
+    void logError()(shared ILogger logger, lazy string message) @trusted
     {
     	try
     	{
@@ -165,7 +165,7 @@ shared interface IStyledLogger(StyleEnum)
         /**
         *   Setups minimum message level that goes to file.
         */
-        StyleEnum minLoggingLevel() @property;
+        StyleEnum minLoggingLevel() const @property;
         
         /**
         *   Setups minimum message level that goes to file.

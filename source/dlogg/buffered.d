@@ -41,10 +41,11 @@ alias BufferedLogger = StyledBufferedLogger!(LoggingLevel
 */
 synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(StyleEnum, US)
 {
-    this(shared ILogger delayLogger)
+    /// Creates a buffered logger that flushes into delayLogger on finalization.
+    this(shared IStyledLogger!StyleEnum delayLogger)
     {
         this.delayLogger = delayLogger;
-        minOutputLevel = LoggingLevel.Muted;
+        minOutputLevel = StyleEnum.max;
     }
     
     override void rawInput(string message) @trusted
@@ -61,11 +62,11 @@ synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(
         {
             try
             {
-	            if(minOutputLevel != LoggingLevel.Muted)
+	            if(minOutputLevel != StyleEnum.max)
 	                writeln(msg);
 	                
 	            delayLogger.rawInput(msg);
-            } catch(Throwable th)
+            } catch(Exception e)
             {
             	
             }
@@ -74,8 +75,43 @@ synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(
     
     private
     {
-        shared ILogger delayLogger;
+        shared IStyledLogger!StyleEnum delayLogger;
         string[] buffer;
         bool finalized;
     }
+}
+
+version(unittest)
+{
+    enum CustomBufferedLevel
+    {
+        Trace,
+        Muted
+    }
+}
+
+// Custom levels must work through both the buffered logger and its sink.
+unittest
+{
+    import std.file : exists, remove;
+
+    alias CustomSink = StyledStrictLogger!(CustomBufferedLevel
+                    , CustomBufferedLevel.Trace, "Trace: %1$s", "[%2$s]: Trace: %1$s"
+                    , CustomBufferedLevel.Muted, "", ""
+                    );
+    alias CustomBuffer = StyledBufferedLogger!(CustomBufferedLevel
+                    , CustomBufferedLevel.Trace, "Trace: %1$s", "[%2$s]: Trace: %1$s"
+                    , CustomBufferedLevel.Muted, "", ""
+                    );
+
+    auto sink = new shared CustomSink("CustomBufferedLevelTestLog");
+    scope(exit)
+    {
+        sink.finalize();
+        if (exists(sink.name)) remove(sink.name);
+    }
+
+    auto logger = new shared CustomBuffer(sink);
+    logger.log("custom buffered level", CustomBufferedLevel.Trace);
+    logger.finalize();
 }

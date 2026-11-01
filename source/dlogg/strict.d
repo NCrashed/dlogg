@@ -187,7 +187,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	                        writeln("Failed to write into log ", name);
 	                }
 	            }
-            } catch(Throwable th)
+            } catch(Exception e)
             {
 
             }
@@ -212,7 +212,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         /**
         *   Setups minimum message level that goes to file.
         */
-        StyleEnum minLoggingLevel() @property
+        StyleEnum minLoggingLevel() const @property
         {
             return mMinLoggingLevel;
         }
@@ -259,9 +259,9 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     /**
     *   Tries to create log file at $(B location).
     */
-    protected void initialize(Mode mode = Mode.Rewrite) @trusted
+    final protected void initialize(Mode mode = Mode.Rewrite) @trusted
     {
-        auto dir = name.dirName;
+        const dir = name.dirName;
         try
         {
             if (!dir.exists)
@@ -313,7 +313,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         scope(exit) finalized = true;
 
         try close();
-        catch(Throwable th) {}
+        catch(Exception e) {}
     }
 
     ~this()
@@ -403,10 +403,18 @@ unittest
     auto f = new std.stdio.File(logger.name, "r");
     auto r = regex(r"[\[][\p{InBasicLatin}]*[\]][:]");
 
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Notice msg!",  LoggingLevel.Notice).replace(r, ""),  "Log notice testing fail!");
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Warning msg!", LoggingLevel.Warning).replace(r, ""), "Log warning testing fail!");
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Debug msg!",   LoggingLevel.Debug).replace(r, ""),   "Log debug testing fail!");
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Fatal msg!",   LoggingLevel.Fatal).replace(r, ""),   "Log fatal testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Notice msg!", LoggingLevel.Notice).replace(r, ""),
+        "Log notice testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Warning msg!", LoggingLevel.Warning).replace(r, ""),
+        "Log warning testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Debug msg!", LoggingLevel.Debug).replace(r, ""),
+        "Log debug testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Fatal msg!", LoggingLevel.Fatal).replace(r, ""),
+        "Log fatal testing fail!");
     f.close;
 
     logger = new shared StrictLogger("TestLog");

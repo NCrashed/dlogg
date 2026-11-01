@@ -85,14 +85,15 @@ mixin template generateStyle(Style, Args...)
         alias timeFormat = Args[0];
         alias Params = ParameterTypeTuple!timeFormat;
         alias RetT = ReturnType!timeFormat;
-        static assert(is(RetT == string), text(&timeFormat, " should have return type of string but got ", RetT.stringof));
+        static assert(is(RetT == string),
+            text(&timeFormat, " should have return type of string but got ", RetT.stringof));
         static assert(Params.length == 2 && is(Params[0] == DistType) && is(Params[1] == SysTime),
             text(&timeFormat, " should have two parameters of types (DistType, SysTime) but got ", Params.stringof));
     } else
     {
         alias TS = Args;
         
-        string timeFormat(DistType t, SysTime time)
+        string timeFormat(DistType, SysTime time)
         {
             return time.toISOExtString;
         }
@@ -116,7 +117,8 @@ mixin template generateStyle(Style, Args...)
             enum checkTypes = false;
         } else
         {
-            enum checkTypes = is(Unqual!(typeof(US[0])) == Style) && isSomeString!(typeof(US[1])) && isSomeString!(typeof(US[2]))
+            enum checkTypes = is(Unqual!(typeof(US[0])) == Style)
+                && isSomeString!(typeof(US[1])) && isSomeString!(typeof(US[2]))
                 && checkTypes!(US[3..$]);
         }
     }
@@ -223,7 +225,7 @@ mixin template generateStyle(Style, Args...)
     
     string formatConsoleOutput(string message, Style level) @trusted
     {
-        auto timeString = timeFormat(DistType.Console, Clock.currTime);
+        const timeString = timeFormat(DistType.Console, Clock.currTime);
         auto writer = appender!string();
         
         //pragma(msg, genSwitch!("level", 1, "message", "timeString", TS));
@@ -234,7 +236,7 @@ mixin template generateStyle(Style, Args...)
     
     string formatFileOutput(string message, Style level) @trusted
     {
-        auto timeString = timeFormat(DistType.File, Clock.currTime);
+        const timeString = timeFormat(DistType.File, Clock.currTime);
         auto writer = appender!string();
         
         //pragma(msg, genSwitch!("level", 2, "message", "timeString", TS));
