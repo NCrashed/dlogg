@@ -163,31 +163,43 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         */
         void log(lazy string message, StyleEnum level) @trusted
         {
-            //scope(failure) {}
+            const writeToConsole = level >= mMinOutputLevel;
+            const writeToFile = level >= mMinLoggingLevel;
+            if(!writeToConsole && !writeToFile) return;
+
+            string evaluatedMessage;
             try
             {
-	            if(level >= mMinOutputLevel)
-	            {
-	                string msg = formatConsoleOutput(message, level);
-	                version(ColoredOutput) cwriteln(msg);
-	                else writeln(msg);
-	            }
-
-	            if(level >= mMinLoggingLevel)
-	            {
-	                try
-	                {
-	                    rawInput(formatFileOutput(message, level));
-	                }
-	                catch(Exception e)
-	                {
-	                    if(minOutputLevel != StyleEnum.max)
-	                        writeln("Failed to write into log ", name);
-	                }
-	            }
-            } catch(Exception e)
+                evaluatedMessage = message;
+            }
+            catch(Exception e)
             {
+                return;
+            }
+            if(evaluatedMessage is null) return;
 
+            if(writeToConsole)
+            {
+                try
+                {
+                    const output = formatConsoleOutput(evaluatedMessage, level);
+                    version(ColoredOutput) cwriteln(output);
+                    else writeln(output);
+                }
+                catch(Exception e) {}
+            }
+
+            if(writeToFile)
+            {
+                try rawInput(formatFileOutput(evaluatedMessage, level));
+                catch(Exception e)
+                {
+                    if(minOutputLevel != StyleEnum.max)
+                    {
+                        try writeln("Failed to write into log ", name);
+                        catch(Exception ignored) {}
+                    }
+                }
             }
         }
 
@@ -366,6 +378,19 @@ version(unittest)
     {
         Trace,
         Muted
+    }
+
+    synchronized class FailingConsoleLogger : StrictLogger
+    {
+        this(string path)
+        {
+            super(path);
+        }
+
+        override string formatConsoleOutput(string, LoggingLevel)
+        {
+            throw new Exception("simulated console formatting failure");
+        }
     }
 
     void testThread(shared ILogger logger, Tid owner, uint n)
@@ -588,4 +613,56 @@ version(linux) unittest
     }
     assert(afterCollection <= after + 1,
         "unreferenced loggers must not keep their files open");
+}
+
+// A lazy message is an event value, not a repeatedly evaluated expression.
+unittest
+{
+    import std.file : exists, remove, tempDir;
+    import std.path : buildPath;
+    import std.uuid : randomUUID;
+
+    const path = buildPath(tempDir, "dlogg-lazy-" ~ randomUUID.toString);
+    auto logger = new shared StrictLogger(path);
+    scope(exit)
+    {
+        logger.finalize();
+        if(exists(path)) remove(path);
+    }
+
+    size_t evaluations;
+    string message()
+    {
+        ++evaluations;
+        return "evaluated once";
+    }
+
+    logger.log(message(), LoggingLevel.Notice);
+    assert(evaluations == 1, "log evaluated its lazy message more than once");
+
+    evaluations = 0;
+    logger.logInfo(message());
+    assert(evaluations == 1, "logInfo evaluated its lazy message more than once");
+}
+
+// A broken console sink must not prevent the independent file sink.
+unittest
+{
+    import std.file : exists, readText, remove, tempDir;
+    import std.path : buildPath;
+    import std.string : indexOf;
+    import std.uuid : randomUUID;
+
+    const path = buildPath(tempDir, "dlogg-sink-isolation-" ~ randomUUID.toString);
+    auto logger = new shared FailingConsoleLogger(path);
+    scope(exit)
+    {
+        logger.finalize();
+        if(exists(path)) remove(path);
+    }
+
+    logger.log("must reach the file", LoggingLevel.Notice);
+    logger.finalize();
+    assert(readText(path).indexOf("must reach the file") >= 0,
+        "a console failure prevented file logging");
 }
