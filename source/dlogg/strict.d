@@ -152,9 +152,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     {
         if(mName == value) return;
 
-        close();
-        mName = value;
-        initialize(mSavedMode);
+        replaceFile(value, mSavedMode);
     }
 
     nothrow
@@ -237,10 +235,10 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     */
     void reload()
     {
-        if(!name.exists)
-        {
-            initialize(mSavedMode);
-        }
+        // logrotate commonly creates the replacement before asking the
+        // application to reload. Always reopen instead of relying on path
+        // existence, and append so an existing replacement is not truncated.
+        replaceFile(name, Mode.Append);
     }
 
     /**
@@ -261,18 +259,31 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     */
     final protected void initialize(Mode mode = Mode.Rewrite) @trusted
     {
-        const dir = name.dirName;
+        replaceFile(name, mode);
+    }
+
+    /// Opens a replacement before releasing the current file.
+    private void replaceFile(string path, Mode mode) @trusted
+    {
+        const dir = path.dirName;
         try
         {
             if (!dir.exists)
             {
                 dir.mkdirRecurse;
             }
-            mLogFiles[this] = File(name, mapMode(mode));
+
+            File replacement;
+            replacement.open(path, mapMode(mode));
+            close();
+            localFile(mLogFile) = replacement;
+            mLogFileOpen = true;
+            mName = path;
+            finalized = false;
         }
         catch(Exception e)
         {
-            throw new Exception(text("Failed to create log at '", name, "'. Details: ", e.msg));
+            throw new Exception(text("Failed to create log at '", path, "'. Details: ", e.msg));
         }
     }
 
@@ -298,8 +309,8 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     */
     void rawInput(string message)  @trusted
     {
-        if(this in mLogFiles)
-            mLogFiles[this].writeln(message);
+        if(mLogFileOpen)
+            localFile(mLogFile).writeln(message);
     }
 
     /**
@@ -324,18 +335,24 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     private
     {
         string mName;
-        __gshared File[shared thistype] mLogFiles;
+        File mLogFile;
+        bool mLogFileOpen = false;
         StyleEnum mMinOutputLevel;
         StyleEnum mMinLoggingLevel;
         bool finalized = false;
         Mode mSavedMode;
 
+        static ref File localFile(ref shared File file) @trusted
+        {
+            return *(cast(File*) &file);
+        }
+
         void close()
         {
-            if(this in mLogFiles)
+            if(mLogFileOpen)
             {
-                mLogFiles[this].close();
-                mLogFiles.remove(this);
+                localFile(mLogFile).close();
+                mLogFileOpen = false;
             }
         }
     }
@@ -360,6 +377,21 @@ version(unittest)
         }
 
         send(owner, true);
+    }
+
+    version(linux)
+    {
+        pragma(inline, false)
+        void createForgottenLoggers(string prefix, size_t count)
+        {
+            import std.conv : text;
+
+            foreach(i; 0 .. count)
+            {
+                auto logger = new shared StrictLogger(text(prefix, i));
+                logger.minOutputLevel = LoggingLevel.Muted;
+            }
+        }
     }
 }
 
@@ -480,4 +512,80 @@ unittest
     logger.logInfo("Msg1");
     logger.logWarning("Msg2");
     logger.logError("Msg2");
+}
+
+// A replacement file created by logrotate must receive subsequent messages.
+unittest
+{
+    import std.file : exists, readText, remove, rename, tempDir, write;
+    import std.path : buildPath;
+    import std.string : indexOf;
+    import std.uuid : randomUUID;
+
+    const baseName = "dlogg-reload-" ~ randomUUID.toString;
+    const activePath = buildPath(tempDir, baseName);
+    const rotatedPath = activePath ~ ".1";
+    auto logger = new shared StrictLogger(activePath, StrictLogger.Mode.Append);
+    logger.minOutputLevel = LoggingLevel.Muted;
+    scope(exit)
+    {
+        logger.finalize();
+        if(exists(activePath)) remove(activePath);
+        if(exists(rotatedPath)) remove(rotatedPath);
+    }
+
+    logger.log("before rotation", LoggingLevel.Notice);
+    rename(activePath, rotatedPath);
+    write(activePath, "");
+    logger.reload();
+    logger.log("after rotation", LoggingLevel.Notice);
+    logger.finalize();
+
+    assert(readText(activePath).indexOf("after rotation") >= 0,
+        "reload must switch to the replacement file");
+    assert(readText(rotatedPath).indexOf("after rotation") < 0,
+        "reload must stop writing to the rotated file");
+}
+
+version(linux) unittest
+{
+    import core.memory : GC;
+    import std.conv : text;
+    import std.file : SpanMode, dirEntries, exists, remove, tempDir;
+    import std.path : buildPath;
+    import std.range : walkLength;
+    import std.uuid : randomUUID;
+
+    size_t openFileDescriptors()
+    {
+        return dirEntries("/proc/self/fd", SpanMode.shallow).walkLength;
+    }
+
+    const firstPath = buildPath(tempDir, "dlogg-finalize-" ~ randomUUID.toString);
+    const secondPath = firstPath ~ ".second";
+    immutable before = openFileDescriptors();
+    auto logger = new shared StrictLogger(firstPath);
+    logger.finalize();
+    logger.name = secondPath;
+    logger.finalize();
+    immutable after = openFileDescriptors();
+
+    if(exists(firstPath)) remove(firstPath);
+    if(exists(secondPath)) remove(secondPath);
+    assert(after == before,
+        "a logger reopened after finalize must be closeable again");
+
+    enum forgottenCount = 16;
+    const prefix = buildPath(tempDir, "dlogg-forgotten-" ~ randomUUID.toString ~ "-");
+    createForgottenLoggers(prefix, forgottenCount);
+    GC.collect();
+    GC.minimize();
+    immutable afterCollection = openFileDescriptors();
+    foreach(i; 0 .. forgottenCount)
+    {
+        const path = text(prefix, i);
+        if(exists(path)) remove(path);
+    }
+    assert(afterCollection <= after + 1,
+        "unreferenced loggers must not keep their files open");
 }
