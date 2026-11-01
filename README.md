@@ -1,9 +1,9 @@
 dlogg
 =====
 
-[![Build Status](https://travis-ci.org/NCrashed/dlogg.svg?branch=master)](https://travis-ci.org/NCrashed/dlogg)
+[![CI](https://github.com/NCrashed/dlogg/actions/workflows/ci.yml/badge.svg)](https://github.com/NCrashed/dlogg/actions/workflows/ci.yml)
 
-[Docs](http://ncrashed.github.io/dlogg/index.html)
+[Docs](https://ncrashed.github.io/dlogg/index.html)
 
 Library that consilidates logging utilites according following goals:
 * Scalability
@@ -19,8 +19,20 @@ Installing
 Add following in your dub package file:
 ```Json
 "dependencies": {
-  "dlogg": ">=0.4.0"
+  "dlogg": "~>0.4.2"
 }
+```
+
+Development with Nix
+====================
+
+The repository includes a pinned development shell and reproducible build:
+
+```console
+nix develop
+dub test --config=default
+dub test --config=colorized
+nix flake check
 ```
 
 Examples:
@@ -87,6 +99,40 @@ Log rotating
 ============
 `StrictLogger.reload` function checks if the log file is exists at specified location and if can't find it, recreates the file and continues write into it. Useful for [logrotate](http://linuxcommand.org/man_pages/logrotate8.html) utility. GNU/Linux system checks file identity by inode, that doesn't change while renaming. Thus after renaming the file at location log continues write into the renamed file. The call to the reload method force splitting log into two parts.
 
+`reload()` opens files, allocates memory, and locks the logger, so it must not be
+called directly from a POSIX signal handler. The handler should only set an
+atomic flag; normal application flow can then perform the reload safely:
+
+```D
+version (Posix)
+{
+    import core.atomic : atomicLoad, atomicStore;
+    import core.stdc.signal : sig_atomic_t, signal;
+    import core.sys.posix.signal : SIGUSR1;
+
+    shared sig_atomic_t reloadRequested;
+
+    extern(C) void requestReload(int) nothrow @nogc
+    {
+        atomicStore(reloadRequested, 1);
+    }
+
+    void installReloadHandler()
+    {
+        signal(SIGUSR1, &requestReload);
+    }
+
+    void processReload(shared ILogger logger)
+    {
+        if (atomicLoad(reloadRequested) != 0)
+        {
+            atomicStore(reloadRequested, 0);
+            logger.reload();
+        }
+    }
+}
+```
+
 Custom styles
 =============
 Since `v0.2.0` custom styled logs are available. Consider how standart logger is implemented:
@@ -141,7 +187,7 @@ And to use colorized version of default loggers add following to your `dub.json`
 {
 	...
 	"dependencies": {
-		"dlogg": ">=0.3.3"
+		"dlogg": "~>0.4.2"
 	},
 	"subConfigurations": {
 		"dlogg": "colorized"

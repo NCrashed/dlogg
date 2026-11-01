@@ -183,11 +183,11 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	                }
 	                catch(Exception e)
 	                {
-	                    if(minOutputLevel != LoggingLevel.Muted)
+	                    if(minOutputLevel != StyleEnum.max)
 	                        writeln("Failed to write into log ", name);
 	                }
 	            }
-            } catch(Throwable th)
+            } catch(Exception e)
             {
 
             }
@@ -212,7 +212,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         /**
         *   Setups minimum message level that goes to file.
         */
-        StyleEnum minLoggingLevel() @property
+        StyleEnum minLoggingLevel() const @property
         {
             return mMinLoggingLevel;
         }
@@ -259,9 +259,9 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     /**
     *   Tries to create log file at $(B location).
     */
-    protected void initialize(Mode mode = Mode.Rewrite) @trusted
+    final protected void initialize(Mode mode = Mode.Rewrite) @trusted
     {
-        auto dir = name.dirName;
+        const dir = name.dirName;
         try
         {
             if (!dir.exists)
@@ -313,7 +313,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         scope(exit) finalized = true;
 
         try close();
-        catch(Throwable th) {}
+        catch(Exception e) {}
     }
 
     ~this()
@@ -345,7 +345,13 @@ version(unittest)
 {
     import std.concurrency;
 
-    void testThread(shared ILogger logger, Tid owner, int i, uint n)
+    enum CustomLoggingLevel
+    {
+        Trace,
+        Muted
+    }
+
+    void testThread(shared ILogger logger, Tid owner, uint n)
     {
         foreach(j; 1 .. n)
         {
@@ -356,6 +362,29 @@ version(unittest)
         send(owner, true);
     }
 }
+
+// Regression test for pull requests #7 and #9: custom logging levels must not
+// be compared with the built-in LoggingLevel enum.
+unittest
+{
+    import std.file : exists, remove;
+
+    alias CustomLogger = StyledStrictLogger!(CustomLoggingLevel
+                    , CustomLoggingLevel.Trace, "Trace: %1$s", "[%2$s]: Trace: %1$s"
+                    , CustomLoggingLevel.Muted, "", ""
+                    );
+
+    auto logger = new shared CustomLogger("CustomLevelTestLog");
+    scope(exit)
+    {
+        logger.finalize();
+        if (exists(logger.name)) remove(logger.name);
+    }
+
+    logger.minOutputLevel = CustomLoggingLevel.Muted;
+    logger.log("custom level", CustomLoggingLevel.Trace);
+}
+
 unittest
 {
     import std.regex;
@@ -374,10 +403,18 @@ unittest
     auto f = new std.stdio.File(logger.name, "r");
     auto r = regex(r"[\[][\p{InBasicLatin}]*[\]][:]");
 
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Notice msg!",  LoggingLevel.Notice).replace(r, ""),  "Log notice testing fail!");
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Warning msg!", LoggingLevel.Warning).replace(r, ""), "Log warning testing fail!");
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Debug msg!",   LoggingLevel.Debug).replace(r, ""),   "Log debug testing fail!");
-    assert(f.readln()[0..$-1].replace(r, "") == logger.formatFileOutput("Fatal msg!",   LoggingLevel.Fatal).replace(r, ""),   "Log fatal testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Notice msg!", LoggingLevel.Notice).replace(r, ""),
+        "Log notice testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Warning msg!", LoggingLevel.Warning).replace(r, ""),
+        "Log warning testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Debug msg!", LoggingLevel.Debug).replace(r, ""),
+        "Log debug testing fail!");
+    assert(f.readln()[0..$-1].replace(r, "")
+        == logger.formatFileOutput("Fatal msg!", LoggingLevel.Fatal).replace(r, ""),
+        "Log fatal testing fail!");
     f.close;
 
     logger = new shared StrictLogger("TestLog");
@@ -385,18 +422,19 @@ unittest
     logger.minOutputLevel = LoggingLevel.Muted;
 
     immutable n = 10;
-    foreach(i; 1 .. n)
+    foreach(_; 0 .. n)
     {
-        spawn(&testThread, logger, thisTid, i, n);
+        spawn(&testThread, logger, thisTid, n);
     }
 
-    auto t = TickDuration.currSystemTick + cast(TickDuration)dur!"seconds"(2);
-    auto ni = 0;
-    while(ni < n && t > TickDuration.currSystemTick)
+    foreach(_; 0 .. n)
     {
-        ni += 1;
+        const received = receiveTimeout(dur!"seconds"(2), (bool completed)
+        {
+            assert(completed);
+        });
+        assert(received, "Concurrent logging test timed out!");
     }
-    assert(ni == n, "Concurrent logging test is failed!");
 
     // Testing overloading
     logger.logInfo("some string");

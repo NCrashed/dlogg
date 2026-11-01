@@ -12,7 +12,7 @@
 			"name": "colorized",
 			"versions": ["ColoredOutput"],
 			"dependencies": {
-				"colorize": ">=1.0.0"
+				"colorize": "~>1.0.5"
 			}
 		}
 	]
