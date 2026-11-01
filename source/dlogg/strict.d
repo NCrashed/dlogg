@@ -351,7 +351,7 @@ version(unittest)
         Muted
     }
 
-    void testThread(shared ILogger logger, Tid owner, int i, uint n)
+    void testThread(shared ILogger logger, Tid owner, uint n)
     {
         foreach(j; 1 .. n)
         {
@@ -414,18 +414,19 @@ unittest
     logger.minOutputLevel = LoggingLevel.Muted;
 
     immutable n = 10;
-    foreach(i; 1 .. n)
+    foreach(_; 0 .. n)
     {
-        spawn(&testThread, logger, thisTid, i, n);
+        spawn(&testThread, logger, thisTid, n);
     }
 
-    auto t = TickDuration.currSystemTick + cast(TickDuration)dur!"seconds"(2);
-    auto ni = 0;
-    while(ni < n && t > TickDuration.currSystemTick)
+    foreach(_; 0 .. n)
     {
-        ni += 1;
+        const received = receiveTimeout(dur!"seconds"(2), (bool completed)
+        {
+            assert(completed);
+        });
+        assert(received, "Concurrent logging test timed out!");
     }
-    assert(ni == n, "Concurrent logging test is failed!");
 
     // Testing overloading
     logger.logInfo("some string");
