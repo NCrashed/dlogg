@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "colorize": {
+      "version": "1.0.5",
+      "sha256": "1nzhz04b66jcnq0ma0ljvkbdpwqbq39n6rmdb3jmcxzmizg7rkn2"
+    }
+  }
+}

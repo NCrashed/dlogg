@@ -2,6 +2,7 @@
 /.buildpath
 /libdlogg.a
 /__test__library__
+/dlogg-test-*
 .dub
 *.lib
 *.exe
