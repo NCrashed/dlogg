@@ -183,7 +183,7 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
 	                }
 	                catch(Exception e)
 	                {
-	                    if(minOutputLevel != LoggingLevel.Muted)
+	                    if(minOutputLevel != StyleEnum.max)
 	                        writeln("Failed to write into log ", name);
 	                }
 	            }
@@ -345,6 +345,12 @@ version(unittest)
 {
     import std.concurrency;
 
+    enum CustomLoggingLevel
+    {
+        Trace,
+        Muted
+    }
+
     void testThread(shared ILogger logger, Tid owner, int i, uint n)
     {
         foreach(j; 1 .. n)
@@ -356,6 +362,29 @@ version(unittest)
         send(owner, true);
     }
 }
+
+// Regression test for pull requests #7 and #9: custom logging levels must not
+// be compared with the built-in LoggingLevel enum.
+unittest
+{
+    import std.file : exists, remove;
+
+    alias CustomLogger = StyledStrictLogger!(CustomLoggingLevel
+                    , CustomLoggingLevel.Trace, "Trace: %1$s", "[%2$s]: Trace: %1$s"
+                    , CustomLoggingLevel.Muted, "", ""
+                    );
+
+    auto logger = new shared CustomLogger("CustomLevelTestLog");
+    scope(exit)
+    {
+        logger.finalize();
+        if (exists(logger.name)) remove(logger.name);
+    }
+
+    logger.minOutputLevel = CustomLoggingLevel.Muted;
+    logger.log("custom level", CustomLoggingLevel.Trace);
+}
+
 unittest
 {
     import std.regex;
