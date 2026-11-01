@@ -7,7 +7,7 @@
 *   auto delayed = new shared BufferedLogger(logger); // wrapping a logger
 *	scope(exit) delayed.finalize(); // write down information in wrapped logger
 *   scope(failure) delayed.minOutputLevel = LoggingLevel.Notice; // if failed, spam in console
-*   delayed.logNotice("Hello!");
+*   delayed.logInfo("Hello!");
 *
 *   // do something that can fail
 *
@@ -37,7 +37,7 @@ alias BufferedLogger = StyledBufferedLogger!(LoggingLevel
 /**
 *   Class-wrapper around strict logger. All strings are written down
 *   only after finalizing the wrapper. Usually you want to use alias
-*   for standart style $(B BufferedLogger).
+*   for standard style $(B BufferedLogger).
 */
 synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(StyleEnum, US)
 {

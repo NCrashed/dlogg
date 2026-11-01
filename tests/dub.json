@@ -1,0 +1,12 @@
+{
+  "name": "dlogg-api-smoke-test",
+  "description": "Compilation smoke test for dlogg's documented public API",
+  "license": "MIT",
+  "targetType": "executable",
+  "sourcePaths": ["api/source"],
+  "dependencies": {
+    "dlogg": {
+      "path": ".."
+    }
+  }
+}

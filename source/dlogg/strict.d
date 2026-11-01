@@ -395,7 +395,7 @@ version(unittest)
 
     void testThread(shared ILogger logger, Tid owner, uint n)
     {
-        foreach(j; 1 .. n)
+        foreach(j; 0 .. n)
         {
             logger.logInfo(to!string(j));
             logger.logError(to!string(j));
@@ -424,14 +424,17 @@ version(unittest)
 // be compared with the built-in LoggingLevel enum.
 unittest
 {
-    import std.file : exists, remove;
+    import std.file : exists, remove, tempDir;
+    import std.path : buildPath;
+    import std.uuid : randomUUID;
 
     alias CustomLogger = StyledStrictLogger!(CustomLoggingLevel
                     , CustomLoggingLevel.Trace, "Trace: %1$s", "[%2$s]: Trace: %1$s"
                     , CustomLoggingLevel.Muted, "", ""
                     );
 
-    auto logger = new shared CustomLogger("CustomLevelTestLog");
+    const path = buildPath(tempDir, "dlogg-custom-" ~ randomUUID.toString);
+    auto logger = new shared CustomLogger(path);
     scope(exit)
     {
         logger.finalize();
@@ -447,9 +450,17 @@ unittest
     import std.regex;
     import std.path;
     import std.file;
+    import std.range : walkLength;
     import std.stdio;
+    import std.uuid : randomUUID;
 
-    auto logger = new shared StrictLogger("TestLog");
+    const path = buildPath(tempDir, "dlogg-concurrency-" ~ randomUUID.toString);
+    auto logger = new shared StrictLogger(path);
+    scope(exit)
+    {
+        logger.finalize();
+        if(exists(path)) remove(path);
+    }
     logger.minOutputLevel = LoggingLevel.Notice;
     logger.log("Notice msg!", LoggingLevel.Notice);
     logger.log("Warning msg!", LoggingLevel.Warning);
@@ -474,8 +485,7 @@ unittest
         "Log fatal testing fail!");
     f.close;
 
-    logger = new shared StrictLogger("TestLog");
-    scope(exit) logger.close();
+    logger = new shared StrictLogger(path);
     logger.minOutputLevel = LoggingLevel.Muted;
 
     immutable n = 10;
@@ -501,14 +511,20 @@ unittest
     logger.logError("some string");
     logger.logError("first string", "second string");
 
-    logger.close();
-    remove(logger.name);
+    logger.finalize();
+    auto concurrentFile = File(path, "r");
+    const lineCount = concurrentFile.byLine.walkLength;
+    concurrentFile.close();
+    assert(lineCount == 2 * n * n + 6,
+        "Concurrent logging lost or duplicated messages");
 }
 // issue #3 Testing custom time formatting
 unittest
 {
     import std.datetime;
     import std.file;
+    import std.path : buildPath;
+    import std.uuid : randomUUID;
 
     string myTimeFormatting(DistType t, SysTime time)
     {
@@ -527,10 +543,11 @@ unittest
                     , LoggingLevel.Muted,   "",              ""
                     );
 
-    auto logger = new shared MyLogger("TimeFormatTestLog");
+    const path = buildPath(tempDir, "dlogg-time-" ~ randomUUID.toString);
+    auto logger = new shared MyLogger(path);
     scope(exit)
     {
-        logger.close();
+        logger.finalize();
         if(exists(logger.name)) remove(logger.name);
     }
 

@@ -41,6 +41,9 @@ void main()
         paths ~= path;
         auto logger = new shared StrictLogger(path);
         logger.minOutputLevel = LoggingLevel.Muted;
+        // Initialize Phobos' time-zone cache before concurrent formatting so
+        // this test reports logger races rather than one-time runtime setup.
+        logger.log("warmup", LoggingLevel.Notice);
         workers ~= new LoggerThread(logger);
     }
 
