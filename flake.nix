@@ -49,7 +49,7 @@
               install -Dm644 libdlogg.a "$out/lib/libdlogg.a"
               install -d "$out/include/d" "$out/share/doc/dlogg"
               cp -r source/dlogg "$out/include/d/"
-              install -m644 README.md LICENSE dub.json "$out/share/doc/dlogg/"
+              install -m644 README.md CHANGELOG.md LICENSE dub.json "$out/share/doc/dlogg/"
               runHook postInstall
             '';
 
