@@ -19,7 +19,7 @@ Installing
 Add following in your dub package file:
 ```Json
 "dependencies": {
-  "dlogg": "~>0.4.2"
+  "dlogg": "~>0.4.3"
 }
 ```
 
@@ -194,7 +194,7 @@ And to use colorized version of default loggers add following to your `dub.json`
 {
 	...
 	"dependencies": {
-		"dlogg": "~>0.4.2"
+		"dlogg": "~>0.4.3"
 	},
 	"subConfigurations": {
 		"dlogg": "colorized"

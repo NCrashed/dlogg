@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.3 - 2026-11-02
 
 - Give each strict logger ownership of its file, eliminating the global file
   table's cross-instance data race and garbage-collection leak.
