@@ -3,6 +3,8 @@
 /libdlogg.a
 /__test__library__
 /dlogg-test-*
+/tests/dlogg-api-smoke-test
+/tests/dub.selections.json
 .dub
 *.lib
 *.exe

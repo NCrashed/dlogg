@@ -194,55 +194,34 @@ mixin template generateStyle(Style, Args...)
         enum checkCoverage = iterate!(Wrapper!(EnumMembers!Style), Wrapper!(filter!US));
     }
     
-    private template genSwitch(USS...)
+    private string formatOutput(size_t formatIndex)(DistType destination,
+        string message, Style level) @trusted
     {
-        enum variable = USS[0];
-        enum formatElemIndex = USS[1];
-        enum messageVariable = USS[2];
-        enum timeVariable = USS[3];
-        alias US = USS[4..$];
-        
-        private template genCases(US...)
+        const timeString = timeFormat(destination, Clock.currTime);
+        auto writer = appender!string();
+
+        outputSwitch: final switch(level)
         {
-            static if(US.length == 0)
+            static foreach(index; 0 .. TS.length / 3)
             {
-                enum genCases = "";
-            } else static if(US.length < 3)
-            {
-                static assert(false, "US invalid size!");
-            } else
-            {
-                enum genCases = "\tcase("~Style.stringof~"."~US[0].to!string~"):\n\t{\n\t\t"
-                    ~ `writer.formattedWrite("`~US[formatElemIndex]~`", `~messageVariable~", "~timeVariable~");\n\t\t"
-                    ~ "break;\n\t}\n"
-                    ~ genCases!(US[3..$]);
+                case(TS[index * 3]):
+                    writer.formattedWrite(TS[index * 3 + formatIndex],
+                        message, timeString);
+                    break outputSwitch;
             }
         }
-        
-        enum genSwitch = "final switch("~variable~")\n{\n" 
-            ~ genCases!(US) ~ "}\n";
+
+        return writer.data;
     }
     
     string formatConsoleOutput(string message, Style level) @trusted
     {
-        const timeString = timeFormat(DistType.Console, Clock.currTime);
-        auto writer = appender!string();
-        
-        //pragma(msg, genSwitch!("level", 1, "message", "timeString", TS));
-        mixin(genSwitch!("level", 1, "message", "timeString", TS));
-        
-        return writer.data;
+        return formatOutput!1(DistType.Console, message, level);
     }
     
     string formatFileOutput(string message, Style level) @trusted
     {
-        const timeString = timeFormat(DistType.File, Clock.currTime);
-        auto writer = appender!string();
-        
-        //pragma(msg, genSwitch!("level", 2, "message", "timeString", TS));
-        mixin(genSwitch!("level", 2, "message", "timeString", TS));
-        
-        return writer.data;
+        return formatOutput!2(DistType.File, message, level);
     }
 }
 /// Example of default style
@@ -263,6 +242,12 @@ version(unittest)
     {
         Error,
         Debug
+    }
+
+    enum QuotedLevel
+    {
+        Message,
+        Muted
     }
 }
 /// Example of custom style
@@ -291,4 +276,16 @@ unittest
                 , MyLevel.Debug,   "Debug: %1$s",   "[%2$s] Debug: %1$s"
                 , MyLevel.Error,   "Fatal: %1$s",   "[%2$s] Fatal: %1$s"
                 );
+}
+
+/// Format strings are data and may contain D string syntax characters.
+unittest
+{
+    mixin generateStyle!(QuotedLevel
+                , QuotedLevel.Message, `said "%1$s" at C:\logs`, `[%2$s] "%1$s" C:\logs`
+                , QuotedLevel.Muted, "", ""
+                );
+
+    assert(formatConsoleOutput("hello", QuotedLevel.Message)
+        == `said "hello" at C:\logs`);
 }

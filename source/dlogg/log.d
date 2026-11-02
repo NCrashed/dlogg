@@ -1,9 +1,8 @@
 /**
 *    Logging system designed to operate in concurrent application.
 *
-*    The system should be initialized with $(B initLoggingSystem) function.
-*    There is no need to call shutdown function as it is happen in module
-*    destructor.
+*    Logger instances are ready after construction. Call $(B finalize) when
+*    their lifetime ends so buffered output is flushed deterministically.
 *
 *    Example:
 *    ---------
@@ -78,12 +77,8 @@ nothrow
     /// Lazy wrapper for one string message
     void logInfo()(shared ILogger logger, lazy string message) @trusted
     {
-    	try
-    	{
-    		if(message is null) return;
-    		logger.log(message, LoggingLevel.Notice);
-		} 
-    	catch(Exception e) {}
+        try logger.log(message, LoggingLevel.Notice);
+        catch(Exception e) {}
     }
     
     /// Not lazy wrapper for multiple args messages
@@ -96,12 +91,8 @@ nothrow
     /// Lazy wrapper for one string message
     void logWarning()(shared ILogger logger, lazy string message) @trusted
     {
-    	try
-    	{
-	        if(message is null) return;
-	        logger.log(message, LoggingLevel.Warning);
-		} 
-    	catch(Exception e) {}
+        try logger.log(message, LoggingLevel.Warning);
+        catch(Exception e) {}
     }
     
     /// Not lazy wrapper for multiple args messages
@@ -114,12 +105,8 @@ nothrow
     /// Lazy wrapper for one string message
     void logError()(shared ILogger logger, lazy string message) @trusted
     {
-    	try
-    	{
-	        if(message is null) return;
-	        logger.log(message, LoggingLevel.Fatal);
-		} 
-    	catch(Exception e) {}
+        try logger.log(message, LoggingLevel.Fatal);
+        catch(Exception e) {}
     }
 }
     

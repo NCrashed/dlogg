@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Give each strict logger ownership of its file, eliminating the global file
+  table's cross-instance data race and garbage-collection leak.
+- Reopen the configured path reliably after log rotation, including when the
+  replacement file already exists.
+- Evaluate lazy messages once and isolate console failures from file output.
+- Make buffered logging work with arbitrary level enums, validate its sink,
+  and define behavior after finalization.
+- Accept quotes and backslashes in custom formats without generated string
+  mixins.
+- Add behavioral regression tests and an LDC ThreadSanitizer CI gate.
+
 ## 0.4.2 - 2026-11-01
 
 - Fix custom levels in `StyledStrictLogger` and `StyledBufferedLogger` by using

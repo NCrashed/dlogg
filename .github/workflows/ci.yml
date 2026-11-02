@@ -2,7 +2,13 @@ name: CI
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -32,6 +38,16 @@ jobs:
         env:
           DFLAGS: -de
         run: dub test --config=colorized --build=unittest
+      - name: Test documented public API
+        env:
+          DFLAGS: -de
+        run: dub run --root=tests --build=debug
+      - name: ThreadSanitizer
+        if: matrix.compiler == 'ldc'
+        run: |
+          ldc2 -de -i -I=source -fsanitize=thread \
+            tests/multi_logger_race.d -of=dlogg-test-tsan
+          ./dlogg-test-tsan
 
   nix:
     name: Nix flake

@@ -9,7 +9,6 @@
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
@@ -40,7 +39,12 @@
                   --config="$configuration" \
                   --build=unittest
               done
-              dscanner lint source
+              DFLAGS="-de" dub run \
+                --root=tests \
+                --skip-registry=all \
+                --compiler=${pkgs.lib.getExe pkgs.ldc} \
+                --build=debug
+              dscanner lint source tests
               runHook postCheck
             '';
 
