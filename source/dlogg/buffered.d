@@ -104,27 +104,11 @@ synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(
             finalized = true;
         }
 
-        foreach(entry; buffer)
+        foreach(sharedEntry; buffer)
         {
-            if(replayToConsole && (!entry.styled || entry.level >= minOutputLevel))
-            {
-                try
-                {
-                    const output = entry.styled
-                        ? formatConsoleOutput(entry.message, entry.level)
-                        : entry.message;
-                    writeln(output);
-                }
-                catch(Exception e) {}
-            }
-
-            if(!entry.hasFileOutput) continue;
-            try
-            {
-                delayLogger.rawInput(entry.fileOutput);
-            } catch(Exception e)
-            {
-            }
+            const entry = cast(BufferedEntry) sharedEntry;
+            replayConsole(entry);
+            replayFile(entry);
         }
     }
     
@@ -142,6 +126,29 @@ synchronized class StyledBufferedLogger(StyleEnum, US...) : StyledStrictLogger!(
             StyleEnum level;
             bool styled;
             bool hasFileOutput;
+        }
+
+        void replayConsole(ref const BufferedEntry entry) @trusted
+        {
+            if(!replayToConsole || (entry.styled && entry.level < minOutputLevel))
+                return;
+
+            try
+            {
+                const output = entry.styled
+                    ? formatConsoleOutput(entry.message, entry.level)
+                    : entry.message;
+                writeln(output);
+            }
+            catch(Exception ignored) {}
+        }
+
+        void replayFile(ref const BufferedEntry entry) @trusted
+        {
+            if(!entry.hasFileOutput) return;
+
+            try delayLogger.rawInput(entry.fileOutput);
+            catch(Exception ignored) {}
         }
     }
 }
@@ -224,6 +231,7 @@ unittest
     stdout = File(consolePath, "w");
     logger.log("buffered info", BufferedLevelWithoutSentinel.Info);
     logger.log("buffered error", BufferedLevelWithoutSentinel.Error);
+    logger.rawInput("raw buffered");
     stdout.flush();
     assert(getSize(consolePath) == 0,
         "the maximum real level bypassed buffering");
@@ -239,8 +247,17 @@ unittest
     assert(consoleOutput.indexOf("buffered error") >= 0);
     assert(fileOutput.indexOf("buffered info") >= 0);
     assert(fileOutput.indexOf("buffered error") >= 0);
+    assert(fileOutput.indexOf("raw buffered") >= 0);
 
-    logger.log("too late", BufferedLevelWithoutSentinel.Error);
+    size_t lateEvaluations;
+    string lateMessage()
+    {
+        ++lateEvaluations;
+        return "too late";
+    }
+    logger.log(lateMessage(), BufferedLevelWithoutSentinel.Error);
+    assert(lateEvaluations == 0,
+        "a finalized buffer evaluated another message");
     logger.finalize();
     assert(readText(sinkPath).indexOf("too late") < 0,
         "a finalized buffer accepted another message");

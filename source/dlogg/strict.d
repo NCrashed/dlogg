@@ -178,29 +178,8 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
             }
             if(evaluatedMessage is null) return;
 
-            if(writeToConsole)
-            {
-                try
-                {
-                    const output = formatConsoleOutput(evaluatedMessage, level);
-                    version(ColoredOutput) cwriteln(output);
-                    else writeln(output);
-                }
-                catch(Exception e) {}
-            }
-
-            if(writeToFile)
-            {
-                try rawInput(formatFileOutput(evaluatedMessage, level));
-                catch(Exception e)
-                {
-                    if(minOutputLevel != StyleEnum.max)
-                    {
-                        try writeln("Failed to write into log ", name);
-                        catch(Exception ignored) {}
-                    }
-                }
-            }
+            if(writeToConsole) writeConsole(evaluatedMessage, level);
+            if(writeToFile) writeFile(evaluatedMessage, level);
         }
 
         /**
@@ -291,7 +270,6 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
             localFile(mLogFile) = replacement;
             mLogFileOpen = true;
             mName = path;
-            finalized = false;
         }
         catch(Exception e)
         {
@@ -330,11 +308,6 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
     */
     void finalize() @trusted
     {
-        if(finalized) return;
-
-        //scope(failure) {}
-        scope(exit) finalized = true;
-
         try close();
         catch(Exception e) {}
     }
@@ -351,12 +324,34 @@ synchronized class StyledStrictLogger(StyleEnum, US...) : IStyledLogger!StyleEnu
         bool mLogFileOpen = false;
         StyleEnum mMinOutputLevel;
         StyleEnum mMinLoggingLevel;
-        bool finalized = false;
         Mode mSavedMode;
 
         static ref File localFile(ref shared File file) @trusted
         {
             return *(cast(File*) &file);
+        }
+
+        void writeConsole(string message, StyleEnum level) nothrow @trusted
+        {
+            try
+            {
+                const output = formatConsoleOutput(message, level);
+                version(ColoredOutput) cwriteln(output);
+                else writeln(output);
+            }
+            catch(Exception ignored) {}
+        }
+
+        void writeFile(string message, StyleEnum level) nothrow @trusted
+        {
+            try rawInput(formatFileOutput(message, level));
+            catch(Exception ignored)
+            {
+                if(minOutputLevel == StyleEnum.max) return;
+
+                try writeln("Failed to write into log ", name);
+                catch(Exception outputError) {}
+            }
         }
 
         void close()
@@ -390,6 +385,19 @@ version(unittest)
         override string formatConsoleOutput(string, LoggingLevel)
         {
             throw new Exception("simulated console formatting failure");
+        }
+    }
+
+    synchronized class FailingFileLogger : StrictLogger
+    {
+        this(string path)
+        {
+            super(path);
+        }
+
+        override void rawInput(string) @trusted
+        {
+            throw new Exception("simulated file write failure");
         }
     }
 
@@ -660,6 +668,13 @@ unittest
     evaluations = 0;
     logger.logInfo(message());
     assert(evaluations == 1, "logInfo evaluated its lazy message more than once");
+
+    evaluations = 0;
+    logger.minOutputLevel = LoggingLevel.Muted;
+    logger.minLoggingLevel = LoggingLevel.Muted;
+    logger.log(message(), LoggingLevel.Notice);
+    assert(evaluations == 0,
+        "a message rejected by both sinks must remain unevaluated");
 }
 
 // A broken console sink must not prevent the independent file sink.
@@ -682,4 +697,100 @@ unittest
     logger.finalize();
     assert(readText(path).indexOf("must reach the file") >= 0,
         "a console failure prevented file logging");
+}
+
+// A level equal to the console threshold must be printed.
+unittest
+{
+    import std.file : exists, readText, remove, tempDir;
+    import std.path : buildPath;
+    import std.stdio : File, stdout;
+    import std.string : indexOf;
+    import std.uuid : randomUUID;
+
+    const prefix = buildPath(tempDir, "dlogg-console-threshold-" ~ randomUUID.toString);
+    const logPath = prefix ~ ".log";
+    const consolePath = prefix ~ ".console";
+    auto originalStdout = stdout;
+    auto logger = new shared StrictLogger(logPath);
+    scope(exit)
+    {
+        stdout = originalStdout;
+        logger.finalize();
+        if(exists(logPath)) remove(logPath);
+        if(exists(consolePath)) remove(consolePath);
+    }
+
+    originalStdout.flush();
+    stdout = File(consolePath, "w");
+    logger.minOutputLevel = LoggingLevel.Notice;
+    logger.minLoggingLevel = LoggingLevel.Muted;
+    logger.log("at threshold", LoggingLevel.Notice);
+    stdout.flush();
+
+    assert(readText(consolePath).indexOf("at threshold") >= 0,
+        "the console threshold must be inclusive");
+}
+
+// Muting the console must also suppress diagnostics from a failed file sink.
+unittest
+{
+    import std.file : exists, getSize, remove, tempDir;
+    import std.path : buildPath;
+    import std.stdio : File, stdout;
+    import std.uuid : randomUUID;
+
+    const prefix = buildPath(tempDir, "dlogg-muted-error-" ~ randomUUID.toString);
+    const logPath = prefix ~ ".log";
+    const consolePath = prefix ~ ".console";
+    auto originalStdout = stdout;
+    auto logger = new shared FailingFileLogger(logPath);
+    scope(exit)
+    {
+        stdout = originalStdout;
+        logger.finalize();
+        if(exists(logPath)) remove(logPath);
+        if(exists(consolePath)) remove(consolePath);
+    }
+
+    originalStdout.flush();
+    stdout = File(consolePath, "w");
+    logger.minOutputLevel = LoggingLevel.Muted;
+    logger.log("file failure", LoggingLevel.Notice);
+    stdout.flush();
+
+    assert(getSize(consolePath) == 0,
+        "a muted logger printed a file failure diagnostic");
+}
+
+// File lifecycle operations preserve contents and remain safe after closing.
+unittest
+{
+    import std.file : exists, readText, rmdirRecurse, tempDir;
+    import std.path : buildPath;
+    import std.string : indexOf;
+    import std.uuid : randomUUID;
+
+    const root = buildPath(tempDir, "dlogg-lifecycle-" ~ randomUUID.toString);
+    const path = buildPath(root, "nested", "test.log");
+    auto logger = new shared StrictLogger(path);
+    scope(exit)
+    {
+        logger.finalize();
+        if(exists(root)) rmdirRecurse(root);
+    }
+
+    logger.minOutputLevel = LoggingLevel.Muted;
+    logger.log("before same name", LoggingLevel.Notice);
+    logger.name = path;
+    logger.log("after same name", LoggingLevel.Notice);
+    logger.finalize();
+    logger.rawInput("ignored after finalize");
+
+    const output = readText(path);
+    assert(output.indexOf("before same name") >= 0,
+        "assigning the current name truncated the log");
+    assert(output.indexOf("after same name") >= 0);
+    assert(output.indexOf("ignored after finalize") < 0,
+        "raw input wrote after finalization");
 }
